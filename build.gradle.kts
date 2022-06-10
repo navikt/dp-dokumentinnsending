@@ -43,6 +43,7 @@ dependencies {
     implementation(Kotlin.Logging.kotlinLogging)
 
     testImplementation(kotlin("test"))
+    testImplementation(Mockk.mockk)
 }
 
 tasks.withType<Test> {

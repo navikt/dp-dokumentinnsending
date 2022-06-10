@@ -6,7 +6,7 @@ import java.util.UUID
 class Soknad(
     private var tilstand: Tilstand = Mottatt,
     private val journalPostId: String,
-    private val soknadInternId: UUID
+    private val fodselsnummer: String
 
 ) : Aktivitetskontekst {
     fun handle(hendelse: SoknadMottattHendelse) {
@@ -25,7 +25,6 @@ class Soknad(
         "Søknad",
         mapOf(
             "journalpostId" to journalPostId,
-            "soknadInternId" to soknadInternId.toString()
         )
     )
 

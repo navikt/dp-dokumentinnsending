@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.asLocalDateTime
 
 internal class SoknadMottak(
     rapidsConnection: RapidsConnection,
@@ -21,18 +22,14 @@ internal class SoknadMottak(
             validate { it.demandValue("@event_name", "innsending_mottatt") }
             validate {
                 it.requireKey(
-                    "uuid",
+                    "fødselsnummer",
                     "journalpostId",
                     "datoRegistrert",
-                )
-            }
-            validate { it.requireAny("type", listOf("NySøknad", "Gjenopptak")) }
-            validate {
-                it.interestedIn(
                     "søknadsData.vedlegg",
                     "søknadsData.brukerBehandlingId"
                 )
             }
+            validate { it.requireAny("type", listOf("NySøknad", "Gjenopptak")) }
         }.register(this)
     }
 
@@ -44,7 +41,10 @@ internal class SoknadMottak(
     }
 }
 
-private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
-    TODO("Not yet implemented")
-}
+private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse = SoknadMottattHendelse(
+    fodselsnummer = this["fødselsnummer"].asText(),
+    journalpostId = this["journalpostId"].asText(),
+    datoRegistrert = this["datoRegistrert"].asLocalDateTime(),
+    brukerBehandlingId = this["søknadsData.brukerBehandlingId"].asText()
+)
 

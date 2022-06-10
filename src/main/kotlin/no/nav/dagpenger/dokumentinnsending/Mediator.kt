@@ -28,7 +28,7 @@ internal class Mediator(private val repository: SoknadRepository) {
 //       repository.hent(hendelse.journalpostId())
         return Soknad(
             journalPostId = hendelse.journalpostId(),
-            soknadInternId = hendelse.soknadInternId()
+            fodselsnummer = hendelse.fodselsnummer()
         ) //toodo
     }
 }
