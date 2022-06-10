@@ -1,4 +1,4 @@
-# Dagpenger-SERVICENAME
+# dp-dokumentinsending 
 
 ## Komme i gang
 
@@ -6,13 +6,16 @@ Gradle brukes som byggverktøy og er bundlet inn.
 
 `./gradlew build`
 
-## Sjekkliste for ny app
-1. Bytt navn på app i nais.yaml, settings.gradle og dockerfile.
-2. Fjern kommentering i deploy.yaml (står beskrevet hva man skal kommentere ut)
-3. Legge til deploysecreten i repoet.
+##
+Dette prosjektet bruker følgende [ktlint plugin](https://github.com/JLLeitschuh/ktlint-gradle) 
 
----
+For å genere IntelliJ code style filer:
 
+`./gradlew ktlintApplyToIdea`
+
+For å formatere koden: 
+
+`/gradlew ktlintFormat` eller `./gradlew kF`
 # Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan rettes mot:
