@@ -12,6 +12,12 @@ internal object App : RapidsConnection.StatusListener {
 
     init {
         rapidsConnection.register(this)
+        SoknadMottak(
+            rapidsConnection = rapidsConnection
+        )
+        EttersendingMottak(
+            rapidsConnection = rapidsConnection
+        )
     }
 
     fun start() = rapidsConnection.start()
