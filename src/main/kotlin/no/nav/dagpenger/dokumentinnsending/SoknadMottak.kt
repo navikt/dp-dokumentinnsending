@@ -38,6 +38,7 @@ internal class SoknadMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         sikkerlogg.info { "Mottok ny søknad" }
+
         val mottatHendelse = packet.toSoknadMottatHendelse()
         mediator.handle(mottatHendelse)
     }
