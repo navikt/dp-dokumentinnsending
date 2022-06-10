@@ -32,7 +32,6 @@ internal class SoknadMottak(rapidsConnection: RapidsConnection) : River.PacketLi
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerlogg.info { "Mottok ny søknad"}
+        sikkerlogg.info { "Mottok ny søknad" }
     }
 }
-
