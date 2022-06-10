@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: dp-service-template
+  name: dp-dokumentinnsending
   namespace: teamdagpenger
   labels:
     team: teamdagpenger
@@ -23,3 +23,6 @@ spec:
       memory: 256Mi
   secureLogs:
     enabled: true
+  kafka:
+    pool: { { kafka_pool } }
+

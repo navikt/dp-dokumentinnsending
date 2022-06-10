@@ -13,7 +13,7 @@ repositories {
 }
 
 application {
-    mainClass.set("no.nav.dagpenger.SERVICENAME")
+    mainClass.set("no.nav.dagpenger.dokumentinnsending.AppKt")
 }
 
 kotlin {
@@ -23,7 +23,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(RapidAndRivers)
+    implementation(RapidAndRiversKtor2)
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
