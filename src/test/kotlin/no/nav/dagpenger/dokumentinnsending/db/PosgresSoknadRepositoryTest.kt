@@ -16,12 +16,12 @@ internal class PosgresSoknadRepositoryTest {
             repo.lagre(
                 Soknad(
                     tilstand = Soknad.Mottatt,
-                    journalpostId = "123",
+                    journalpostId = "456",
                     fodselsnummer = "fnr",
-                    brukerbehandlingId = "bid",
+                    brukerbehandlingId = "123",
                     vedlegg = mutableListOf(
-                        Vedlegg("bid", InnsendingStatus.INNSENDT),
-                        Vedlegg("bid", InnsendingStatus.IKKE_INNSENDT),
+                        Vedlegg("123", InnsendingStatus.INNSENDT),
+                        Vedlegg("123", InnsendingStatus.IKKE_INNSENDT),
                     )
                 )
             )

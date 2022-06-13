@@ -83,7 +83,7 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
 
     private fun MutableList<VedleggData>.dbParametre(internId: Long): List<Map<String, Any>> {
         return this.map {
-            mapOf("soknad_id" to internId, "bhid" to it.behandlingKjedeId, "status" to it.status)
+            mapOf("internId" to internId, "bhid" to it.behandlingKjedeId, "status" to it.status)
         }
     }
 }

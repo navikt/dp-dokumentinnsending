@@ -36,7 +36,7 @@ internal class MediatorE2ETest {
 
             SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
 
-            testRapid.sendTestMessage(søknadJson("1"))
+            testRapid.sendTestMessage(søknadJson("1", "LastetOpp"))
 
             val soknad = soknadRepository.hent("1")
             assertNotNull(soknad)
