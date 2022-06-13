@@ -6,6 +6,7 @@ import kotliquery.using
 import no.nav.dagpenger.dokumentinnsending.Configuration
 import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
+import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.VedleggVisitor
@@ -35,19 +36,55 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                     visitor.vedlegg.dbParametre(internId)
 
                 )
-
             }
         }
     }
 
-    override fun hent(soknadBrukerbehandlingId: String): Soknad {
-        TODO("Not yet implemented")
+    override fun hent(soknadBrukerbehandlingId: String): Soknad? {
+        return using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM soknad_v1 WHERE brukerbehandling_id=:bid",
+                    mapOf(
+                        "bid" to soknadBrukerbehandlingId
+                    )
+                ).map { row ->
+                    SoknadData(
+                        internId = row.long("id"),
+                        tilstand = row.string("tilstand"),
+                        journalPostId = row.long("journalpost_id").toString(),
+                        fnr = row.string("fodselnummer"),
+                        brukerbehandlingId = row.string("brukerbehandling_id")
+                    )
+                }.asSingle
+            )?.let { soknadData ->
+                val vedlegg = session.run(
+                    queryOf(
+                        "SELECT * FROM vedlegg_v1 WHERE soknad_id=:soknadId",
+                        mapOf("soknadId" to soknadData.internId)
+                    ).map { row ->
+                        Vedlegg(
+                            innsendingStatus = InnsendingStatus.valueOf(row.string("status")),
+                            brukerbehandlingskjedeId = row.string("behandlingskjede_id")
+
+                        )
+                    }.asList
+                ).toMutableList()
+                Soknad(
+                    tilstand = soknadData.tilstandType(),
+                    journalpostId = soknadData.journalPostId,
+                    fodselsnummer = soknadData.fnr,
+                    brukerbehandlingId = soknadData.brukerbehandlingId,
+                    vedlegg = vedlegg
+                )
+            }
+        }
     }
 
     private fun MutableList<VedleggData>.dbParametre(internId: Long): List<Map<String, Any>> {
-     return this.map {
-         mapOf("soknad_id" to internId, "bhid" to it.behandlingKjedeId, "status" to it.status)
-     }
+        return this.map {
+            mapOf("soknad_id" to internId, "bhid" to it.behandlingKjedeId, "status" to it.status)
+        }
     }
 }
 
@@ -82,8 +119,22 @@ private class SoknadVisitor(soknad: Soknad) :
     }
 
     override fun visit(status: InnsendingStatus, brukerbehandlinskjedeId: String) {
-        vedlegg.add(VedleggData(status.name,brukerbehandlinskjedeId))
+        vedlegg.add(VedleggData(status.name, brukerbehandlinskjedeId))
     }
 }
 
-data class VedleggData(val status: String, val behandlingKjedeId: String)
+private data class VedleggData(val status: String, val behandlingKjedeId: String)
+
+private data class SoknadData(
+    val internId: Long,
+    val tilstand: String,
+    val journalPostId: String,
+    val fnr: String,
+    val brukerbehandlingId: String
+) {
+    fun tilstandType(): Soknad.Tilstand = when (SoknadTilstandType.valueOf(tilstand)) {
+        SoknadTilstandType.MOTTATT -> Soknad.Mottatt
+        SoknadTilstandType.KOMPLETT -> Soknad.Komplett
+        SoknadTilstandType.AVVENTER_VEDLEGG -> Soknad.AvventerVedlegg
+    }
+}

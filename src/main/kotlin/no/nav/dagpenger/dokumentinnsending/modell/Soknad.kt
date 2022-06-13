@@ -8,7 +8,7 @@ class Soknad(
     private var tilstand: Tilstand = Mottatt,
     private val journalpostId: String,
     private val fodselsnummer: String,
-    val brukerbehandlingId: String, // todo visibility
+    private val brukerbehandlingId: String,
     private val vedlegg: MutableList<Vedlegg> = mutableListOf()
 
 ) : Aktivitetskontekst {
@@ -70,7 +70,7 @@ class Soknad(
         }
     }
 
-    internal object Komplett : Tilstand {
+    object Komplett : Tilstand {
         override val type: SoknadTilstandType
             get() = KOMPLETT
 
@@ -84,7 +84,7 @@ class Soknad(
         }
     }
 
-    internal object AvventerVedlegg : Tilstand {
+    object AvventerVedlegg : Tilstand {
         override val type: SoknadTilstandType
             get() = AVVENTER_VEDLEGG
 

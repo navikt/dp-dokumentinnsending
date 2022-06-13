@@ -1,5 +1,7 @@
 package no.nav.dagpenger.dokumentinnsending
 
+import no.nav.dagpenger.dokumentinnsending.db.PostgresSoknadRepository
+import no.nav.dagpenger.dokumentinnsending.db.PostgresTestHelper
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -12,31 +14,34 @@ internal class MediatorE2ETest {
 
     @Test
     fun `lagrer søknad med manglende vedlegg`() {
-        val soknadRepository = InmemoryRepository()
-        val mediator = Mediator(soknadRepository = soknadRepository)
+        PostgresTestHelper.withMigratedDb {
+            val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
+            val mediator = Mediator(soknadRepository = soknadRepository)
 
-        SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
+            SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
 
-        testRapid.sendTestMessage(søknadJson("1"))
+            testRapid.sendTestMessage(søknadJson("1"))
 
-        val soknad = soknadRepository.hent("1")
-        assertNotNull(soknad)
-        assertFalse(soknad.erKomplett())
+            val soknad = soknadRepository.hent("1")
+            assertNotNull(soknad)
+            assertFalse(soknad!!.erKomplett())
+        }
     }
 
     @Test
     fun `lagrer søknad uten manglende vedlegg`() {
-        val soknadRepository = InmemoryRepository()
-        val mediator = Mediator(soknadRepository = soknadRepository)
+        PostgresTestHelper.withMigratedDb {
+            val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
+            val mediator = Mediator(soknadRepository = soknadRepository)
 
-        SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
+            SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
 
-        testRapid.sendTestMessage(søknadJson("1", "LastetOpp"))
+            testRapid.sendTestMessage(søknadJson("1"))
 
-        val soknad = soknadRepository.hent("1")
-
-        assertNotNull(soknad)
-        assertTrue(soknad.erKomplett())
+            val soknad = soknadRepository.hent("1")
+            assertNotNull(soknad)
+            assertTrue(soknad!!.erKomplett())
+        }
     }
 }
 
@@ -46,7 +51,7 @@ private fun søknadJson(brukerBehandlingsId: String, innsendingsValg: String = "
   "@event_name": "innsending_mottatt",
   "@opprettet": "${LocalDateTime.now()}",
   "fødselsnummer": "123",
-  "journalpostId": "123kkh",
+  "journalpostId": "1236876",
   "skjemaKode": "NAV 03-102.23",
   "tittel": "Tittel",
   "type": "NySøknad",
@@ -92,6 +97,6 @@ private fun søknadJson(brukerBehandlingsId: String, innsendingsValg: String = "
     }
     ],
     "skjemaNummer": "NAV12"
-  }
+  } 
 }
     """.trimIndent()

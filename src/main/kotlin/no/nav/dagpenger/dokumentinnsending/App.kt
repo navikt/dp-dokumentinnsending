@@ -1,5 +1,6 @@
 package no.nav.dagpenger.dokumentinnsending
 
+import no.nav.dagpenger.dokumentinnsending.db.PostgresSoknadRepository
 import no.nav.dagpenger.dokumentinnsending.db.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -15,7 +16,7 @@ internal object App : RapidsConnection.StatusListener {
         rapidsConnection.register(this)
         SoknadMottak(
             rapidsConnection = rapidsConnection,
-            mediator = Mediator(InmemoryRepository())
+            mediator = Mediator(PostgresSoknadRepository())
         )
         EttersendingMottak(
             rapidsConnection = rapidsConnection

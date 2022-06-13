@@ -58,7 +58,7 @@ private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
 private fun JsonMessage.vedlegg(brukerBehandlingId: String): List<Vedlegg> {
     return this["søknadsData.vedlegg"].map { node ->
         Vedlegg(
-            brukerbehandlinskjedeId = brukerBehandlingId,
+            brukerbehandlingskjedeId = brukerBehandlingId,
             innsendingStatus = node["innsendingsvalg"].asText().let {
                 when (it) {
                     "LastetOpp" -> InnsendingStatus.INNSENDT
