@@ -7,7 +7,7 @@ internal class InmemoryRepository : SoknadRepository {
     private val data = mutableMapOf<String, Soknad>()
 
     override fun lagre(soknad: Soknad) {
-        data[soknad.brukerbehandlingsId] = soknad
+        data[soknad.brukerbehandlingId] = soknad
     }
 
     override fun hent(soknadBrukerbehandlingId: String): Soknad {

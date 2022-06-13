@@ -31,9 +31,9 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
         // hente eller lage
         // hvis hente: søknad har allerede vedlegg --> liste skal ikke endres
         return Soknad(
-            journalPostId = hendelse.journalpostId(),
+            journalpostId = hendelse.journalpostId(),
             fodselsnummer = hendelse.fodselsnummer(),
-            brukerbehandlingsId = hendelse.soknadBrukerbehandlingsId()
+            brukerbehandlingId = hendelse.soknadBrukerbehandlingsId()
         )
     }
 

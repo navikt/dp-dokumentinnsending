@@ -42,6 +42,13 @@ dependencies {
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
 
+    implementation(Database.Flyway)
+    implementation(Database.HikariCP)
+    implementation(Database.Kotlinquery)
+    implementation(Database.Postgres)
+
+    testImplementation(TestContainers.postgresql)
+
     testImplementation(kotlin("test"))
     testImplementation(Mockk.mockk)
 }

@@ -1,5 +1,6 @@
 package no.nav.dagpenger.dokumentinnsending
 
+import no.nav.dagpenger.dokumentinnsending.db.runMigration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
@@ -22,4 +23,8 @@ internal object App : RapidsConnection.StatusListener {
     }
 
     fun start() = rapidsConnection.start()
+
+    override fun onStartup(rapidsConnection: RapidsConnection) {
+        runMigration(Configuration.dataSource)
+    }
 }

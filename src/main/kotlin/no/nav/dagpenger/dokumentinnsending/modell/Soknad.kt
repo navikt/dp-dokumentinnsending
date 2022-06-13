@@ -6,12 +6,16 @@ import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType.MOTTATT
 
 class Soknad(
     private var tilstand: Tilstand = Mottatt,
-    private val journalPostId: String,
+    private val journalpostId: String,
     private val fodselsnummer: String,
-    val brukerbehandlingsId: String, // todo visibility
+    val brukerbehandlingId: String, // todo visibility
     private val vedlegg: MutableList<Vedlegg> = mutableListOf()
 
 ) : Aktivitetskontekst {
+    fun accept(visitor: SoknadVisitor) {
+        visitor.visit(tilstand, journalpostId, fodselsnummer, brukerbehandlingId)
+    }
+
     fun handle(hendelse: SoknadMottattHendelse) {
         kontekst(hendelse, "Søknad motatt")
         vedlegg.addAll(hendelse.vedlegg())
@@ -29,7 +33,7 @@ class Soknad(
     override fun toSpesifikkKontekst(): SpesifikkKontekst = SpesifikkKontekst(
         "Søknad",
         mapOf(
-            "journalpostId" to journalPostId,
+            "journalpostId" to journalpostId,
         )
     )
 
@@ -43,7 +47,7 @@ class Soknad(
         }
     }
 
-    internal object Mottatt : Tilstand {
+    object Mottatt : Tilstand {
         override val type: SoknadTilstandType
             get() = MOTTATT
 
