@@ -21,7 +21,7 @@ internal class SoknadMottakTest {
                 SoknadMottattHendelse(
                     fodselsnummer = "123",
                     journalpostId = "123kkh",
-                    brukerBehandlingId = "123hurra",
+                    brukerBehandlingsId = "123hurra",
                     datoRegistrert = forventetDato
                 )
             )

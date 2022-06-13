@@ -1,16 +1,21 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
+import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType.AVVENTER_VEDLEGG
+import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType.KOMPLETT
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType.MOTTATT
-import java.util.UUID
 
 class Soknad(
     private var tilstand: Tilstand = Mottatt,
     private val journalPostId: String,
-    private val fodselsnummer: String
+    private val fodselsnummer: String,
+    private val brukerbehandlingsId: String,
+    private val vedlegg: MutableList<Vedlegg> = mutableListOf()
 
 ) : Aktivitetskontekst {
     fun handle(hendelse: SoknadMottattHendelse) {
-        TODO("Not yet implemented")
+        kontekst(hendelse, "Søknad motatt")
+        vedlegg.addAll(hendelse.vedlegg())
+        tilstand.handle(this, hendelse)
     }
 
     val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
@@ -27,15 +32,30 @@ class Soknad(
             "journalpostId" to journalPostId,
         )
     )
+    private fun erKomplett(): Boolean {
+        TODO("Not yet implemented")
+    }
 
     // Gang of four State pattern
     interface Tilstand : Aktivitetskontekst {
         val type: SoknadTilstandType
+        fun handle(soknad: Soknad, motattHendelse: SoknadMottattHendelse) {
+            motattHendelse.warn("Forventet ikke SøknadMottatHendelse i ${this.type.name} tilstand")
+        }
     }
 
     internal object Mottatt : Tilstand {
         override val type: SoknadTilstandType
             get() = MOTTATT
+
+        override fun handle(soknad: Soknad, motattHendelse: SoknadMottattHendelse) {
+            if(soknad.erKomplett()){
+                soknad.tilstand(motattHendelse, Komplett)
+            } else {
+                soknad.tilstand(motattHendelse,AvventerVedlegg)
+            }
+        }
+
 
         override fun toSpesifikkKontekst(): SpesifikkKontekst {
             return SpesifikkKontekst(
@@ -45,5 +65,43 @@ class Soknad(
                 )
             )
         }
+    }
+
+    internal object Komplett : Tilstand{
+        override val type: SoknadTilstandType
+            get() = KOMPLETT
+
+        override fun toSpesifikkKontekst(): SpesifikkKontekst {
+            return SpesifikkKontekst(
+                kontekstType = "Tilstand",
+                kontekstMap = mapOf(
+                    "tilstand" to type.name
+                )
+            )
+        }
+    }
+    internal object AvventerVedlegg : Tilstand{
+        override val type: SoknadTilstandType
+            get() = AVVENTER_VEDLEGG
+
+        override fun toSpesifikkKontekst(): SpesifikkKontekst {
+            return SpesifikkKontekst(
+                kontekstType = "Tilstand",
+                kontekstMap = mapOf(
+                    "tilstand" to type.name
+                )
+            )
+        }
+    }
+
+    private fun tilstand(
+        hendelse: Hendelse,
+        nyTilstand: Tilstand
+    ) {
+        if (tilstand == nyTilstand) {
+            return // Already in this state => ignore
+        }
+        tilstand = nyTilstand
+        hendelse.kontekst(tilstand)
     }
 }
