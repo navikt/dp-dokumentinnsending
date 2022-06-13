@@ -185,7 +185,7 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
     }
 }
 
-//fun Aktivitetslogg.toMap() = AktivitetsloggReflect(this).toMap()
+// fun Aktivitetslogg.toMap() = AktivitetsloggReflect(this).toMap()
 
 interface IAktivitetslogg {
     fun info(melding: String, vararg params: Any?)

@@ -6,7 +6,7 @@ abstract class Hendelse protected constructor(
 
     abstract fun journalpostId(): String
     abstract fun fodselsnummer(): String
-    abstract fun søknadBrukerbehandlingsId(): String
+    abstract fun soknadBrukerbehandlingsId(): String
 
     init {
         aktivitetslogg.kontekst(this)
@@ -15,9 +15,10 @@ abstract class Hendelse protected constructor(
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         return this.javaClass.canonicalName.split('.').last().let {
             SpesifikkKontekst(
-                it, mapOf(
+                it,
+                mapOf(
                     "journalpostId" to journalpostId(),
-                    "brukerbehandlingsid" to søknadBrukerbehandlingsId()
+                    "brukerbehandlingsid" to soknadBrukerbehandlingsId()
                 )
             )
         }

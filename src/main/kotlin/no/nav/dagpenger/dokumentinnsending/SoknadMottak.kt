@@ -1,7 +1,9 @@
 package no.nav.dagpenger.dokumentinnsending
 
 import mu.KotlinLogging
+import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
+import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -26,6 +28,7 @@ internal class SoknadMottak(
                     "journalpostId",
                     "datoRegistrert",
                     "søknadsData.vedlegg",
+
                     "søknadsData.brukerBehandlingId"
                 )
             }
@@ -41,10 +44,27 @@ internal class SoknadMottak(
     }
 }
 
-private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse = SoknadMottattHendelse(
-    fodselsnummer = this["fødselsnummer"].asText(),
-    journalpostId = this["journalpostId"].asText(),
-    datoRegistrert = this["datoRegistrert"].asLocalDateTime(),
-    brukerBehandlingId = this["søknadsData.brukerBehandlingId"].asText()
-)
+private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
+    val brukerBehandlingId = this["søknadsData.brukerBehandlingId"].asText()
+    return SoknadMottattHendelse(
+        fodselsnummer = this["fødselsnummer"].asText(),
+        journalpostId = this["journalpostId"].asText(),
+        datoRegistrert = this["datoRegistrert"].asLocalDateTime(),
+        brukerBehandlingsId = brukerBehandlingId,
+        vedlegg = this.vedlegg(brukerBehandlingId)
+    )
+}
 
+private fun JsonMessage.vedlegg(brukerBehandlingId: String): List<Vedlegg> {
+    return this["søknadsData.vedlegg"].map { node ->
+        Vedlegg(
+            brukerbehandlinskjedeId = brukerBehandlingId,
+            innsendingStatus = node["innsendingsvalg"].asText().let {
+                when (it) {
+                    "LastetOpp" -> InnsendingStatus.INNSENDT
+                    else -> InnsendingStatus.IKKE_INNSENDT
+                }
+            }
+        )
+    }
+}

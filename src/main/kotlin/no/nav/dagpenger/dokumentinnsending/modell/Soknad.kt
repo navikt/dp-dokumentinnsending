@@ -8,7 +8,7 @@ class Soknad(
     private var tilstand: Tilstand = Mottatt,
     private val journalPostId: String,
     private val fodselsnummer: String,
-    private val brukerbehandlingsId: String,
+    val brukerbehandlingsId: String, // todo visibility
     private val vedlegg: MutableList<Vedlegg> = mutableListOf()
 
 ) : Aktivitetskontekst {
@@ -32,9 +32,8 @@ class Soknad(
             "journalpostId" to journalPostId,
         )
     )
-    private fun erKomplett(): Boolean {
-        TODO("Not yet implemented")
-    }
+
+    fun erKomplett(): Boolean = vedlegg.all { it.innsendingStatus == InnsendingStatus.INNSENDT }
 
     // Gang of four State pattern
     interface Tilstand : Aktivitetskontekst {
@@ -49,13 +48,12 @@ class Soknad(
             get() = MOTTATT
 
         override fun handle(soknad: Soknad, motattHendelse: SoknadMottattHendelse) {
-            if(soknad.erKomplett()){
+            if (soknad.erKomplett()) {
                 soknad.tilstand(motattHendelse, Komplett)
             } else {
-                soknad.tilstand(motattHendelse,AvventerVedlegg)
+                soknad.tilstand(motattHendelse, AvventerVedlegg)
             }
         }
-
 
         override fun toSpesifikkKontekst(): SpesifikkKontekst {
             return SpesifikkKontekst(
@@ -67,7 +65,7 @@ class Soknad(
         }
     }
 
-    internal object Komplett : Tilstand{
+    internal object Komplett : Tilstand {
         override val type: SoknadTilstandType
             get() = KOMPLETT
 
@@ -80,7 +78,8 @@ class Soknad(
             )
         }
     }
-    internal object AvventerVedlegg : Tilstand{
+
+    internal object AvventerVedlegg : Tilstand {
         override val type: SoknadTilstandType
             get() = AVVENTER_VEDLEGG
 

@@ -1,6 +1,5 @@
 package no.nav.dagpenger.dokumentinnsending
 
-import no.nav.dagpenger.dokumentinnsending.db.SoknadRepository
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
@@ -15,8 +14,7 @@ internal object App : RapidsConnection.StatusListener {
         rapidsConnection.register(this)
         SoknadMottak(
             rapidsConnection = rapidsConnection,
-            mediator = Mediator(object : SoknadRepository {
-            })
+            mediator = Mediator(InmemoryRepository())
         )
         EttersendingMottak(
             rapidsConnection = rapidsConnection

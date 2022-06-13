@@ -1,6 +1,6 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
-class Vedlegg(brukerbehandlinskjedeId:String, innsendingStatus: InnsendingStatus) : Aktivitetskontekst {
+class Vedlegg(val brukerbehandlinskjedeId: String, val innsendingStatus: InnsendingStatus) : Aktivitetskontekst {
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         return SpesifikkKontekst(
             "Vedleggskrav",
@@ -9,4 +9,7 @@ class Vedlegg(brukerbehandlinskjedeId:String, innsendingStatus: InnsendingStatus
     }
 }
 
-internal typealias InnsendingStatus=Boolean
+enum class InnsendingStatus {
+    INNSENDT,
+    IKKE_INNSENDT
+}

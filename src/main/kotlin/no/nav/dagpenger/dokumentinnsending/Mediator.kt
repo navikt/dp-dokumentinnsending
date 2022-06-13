@@ -20,21 +20,20 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
             MDC.put("journalpostId", hendelse.journalpostId())
             soknad(hendelse).also { soknad ->
                 handler(soknad)
-                finalize(soknad,hendelse)
+                finalize(soknad, hendelse)
             }
-
         } finally {
             MDC.clear()
         }
     }
 
     private fun soknad(hendelse: Hendelse): Soknad {
-        //hente eller lage
-        //hvis hente: søknad har allerede vedlegg --> liste skal ikke endres
+        // hente eller lage
+        // hvis hente: søknad har allerede vedlegg --> liste skal ikke endres
         return Soknad(
             journalPostId = hendelse.journalpostId(),
             fodselsnummer = hendelse.fodselsnummer(),
-            brukerbehandlingsId = hendelse.søknadBrukerbehandlingsId()
+            brukerbehandlingsId = hendelse.soknadBrukerbehandlingsId()
         )
     }
 

@@ -22,23 +22,22 @@ internal class SoknadMottakTest {
                     fodselsnummer = "123",
                     journalpostId = "123kkh",
                     brukerBehandlingsId = "123hurra",
-                    datoRegistrert = forventetDato
+                    datoRegistrert = forventetDato,
+                    vedlegg = listOf(),
                 )
             )
         }
     }
 
     @Test
-    fun `håndterer ikke papirsøknader`(){
+    fun `håndterer ikke papirsøknader`() {
         val mockMediator = mockk<Mediator>(relaxed = true)
         SoknadMottak(testRapid, mockMediator)
         testRapid.sendTestMessage(papirsøknadJson)
-        verify (exactly = 0){
+        verify(exactly = 0) {
             mockMediator.handle(any())
         }
-
     }
-
 }
 
 //language=json
@@ -51,7 +50,7 @@ private fun søknadJson(datoRegistrert: LocalDateTime) = """{
   "skjemaKode": "NAV 03-102.23",
   "tittel": "Tittel",
   "type": "NySøknad",
-  "datoRegistrert": "${datoRegistrert}",
+  "datoRegistrert": "$datoRegistrert",
   "søknadsData": {
     "brukerBehandlingId": "123hurra",
     "vedlegg": [],
