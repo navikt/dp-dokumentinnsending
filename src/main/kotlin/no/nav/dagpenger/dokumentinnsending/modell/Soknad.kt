@@ -13,6 +13,7 @@ class Soknad(
 
 ) : Aktivitetskontekst {
     fun accept(visitor: SoknadVisitor) {
+        visitor.visitVedlegg(vedlegg)
         visitor.visit(tilstand, journalpostId, fodselsnummer, brukerbehandlingId)
     }
 
@@ -37,7 +38,7 @@ class Soknad(
         )
     )
 
-    fun erKomplett(): Boolean = vedlegg.all { it.innsendingStatus == InnsendingStatus.INNSENDT }
+    fun erKomplett(): Boolean = vedlegg.all { it.status() == InnsendingStatus.INNSENDT }
 
     // Gang of four State pattern
     interface Tilstand : Aktivitetskontekst {
