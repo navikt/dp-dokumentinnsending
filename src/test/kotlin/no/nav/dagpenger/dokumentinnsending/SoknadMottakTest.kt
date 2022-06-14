@@ -6,6 +6,8 @@ import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 internal class SoknadMottakTest {
     private val testRapid = TestRapid()
@@ -13,9 +15,9 @@ internal class SoknadMottakTest {
     @Test
     fun `håndterer innsending_mottatt hendelser`() {
         val mockMediator = mockk<Mediator>(relaxed = true)
-        val forventetDato = LocalDateTime.now()
+        val forventetDato = ZonedDateTime.now(ZoneId.of("Europe/Oslo"))
         SoknadMottak(testRapid, mockMediator)
-        testRapid.sendTestMessage(søknadJson(forventetDato))
+        testRapid.sendTestMessage(søknadJson(forventetDato.toLocalDateTime()))
         verify(exactly = 1) {
             mockMediator.handle(
                 SoknadMottattHendelse(

@@ -1,5 +1,6 @@
 package no.nav.dagpenger.dokumentinnsending
 
+import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
@@ -9,6 +10,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
+import java.time.ZoneId
 
 internal class SoknadMottak(
     rapidsConnection: RapidsConnection,
@@ -28,7 +30,6 @@ internal class SoknadMottak(
                     "journalpostId",
                     "datoRegistrert",
                     "søknadsData.vedlegg",
-
                     "søknadsData.brukerBehandlingId"
                 )
             }
@@ -49,11 +50,13 @@ private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
     return SoknadMottattHendelse(
         fodselsnummer = this["fødselsnummer"].asText(),
         journalpostId = this["journalpostId"].asText(),
-        datoRegistrert = this["datoRegistrert"].asLocalDateTime(),
+        datoRegistrert = this["datoRegistrert"].asZonedDateTime(),
         brukerBehandlingsId = brukerBehandlingId,
         vedlegg = this.vedlegg(brukerBehandlingId)
     )
 }
+
+private fun JsonNode.asZonedDateTime() = this.asLocalDateTime().atZone(ZoneId.of("Europe/Oslo"))
 
 private fun JsonMessage.vedlegg(brukerBehandlingId: String): List<Vedlegg> {
     return this["søknadsData.vedlegg"].map { node ->

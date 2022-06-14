@@ -3,6 +3,7 @@ package no.nav.dagpenger.dokumentinnsending.modell
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
@@ -38,14 +39,17 @@ private fun lagSoknad(
     journalpostId: String = "anfkuh45",
     fnr: String = "12345678910",
     brukerbehandlingId: String = "hjk",
-    vedlegg: List<Vedlegg> = listOf()
+    vedlegg: List<Vedlegg> = listOf(),
+    registrertDato: ZonedDateTime = ZonedDateTime.now()
+
 ): Soknad {
     return Soknad(
         tilstand = tilstand,
         journalpostId = journalpostId,
         fodselsnummer = fnr,
         brukerbehandlingId = brukerbehandlingId,
-        vedlegg = vedlegg
+        vedlegg = vedlegg,
+        registrertDato = registrertDato
     )
 }
 

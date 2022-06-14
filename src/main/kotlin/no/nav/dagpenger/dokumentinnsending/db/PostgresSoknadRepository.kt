@@ -10,6 +10,7 @@ import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.VedleggVisitor
+import java.time.ZonedDateTime
 import javax.sql.DataSource
 
 class PostgresSoknadRepository(private val dataSource: DataSource = Configuration.dataSource) : SoknadRepository {
@@ -19,14 +20,15 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
             session.transaction { tx ->
                 val internId = tx.run(
                     queryOf(
-                        """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,brukerbehandling_id,tilstand) 
-                        VALUES(:jpid,:fnr,:bid,:tilstand) RETURNING id 
+                        """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,brukerbehandling_id,tilstand, registrert_dato) 
+                        VALUES(:jpid,:fnr,:bid,:tilstand,:regdato) RETURNING id 
                         """.trimIndent(),
                         mapOf(
                             "jpid" to visitor.journalpostId.toLong(),
                             "fnr" to visitor.fodselsnummer,
                             "bid" to visitor.brukerbehandlingId,
-                            "tilstand" to visitor.tilstand
+                            "tilstand" to visitor.tilstand,
+                            "regdato" to visitor.registrertDato
                         )
                     ).map { row -> row.long("id") }.asSingle
                 )!!
@@ -54,7 +56,9 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                         tilstand = row.string("tilstand"),
                         journalPostId = row.long("journalpost_id").toString(),
                         fnr = row.string("fodselnummer"),
-                        brukerbehandlingId = row.string("brukerbehandling_id")
+                        brukerbehandlingId = row.string("brukerbehandling_id"),
+                        registrertDato = row.zonedDateTime("registrert_dato")
+
                     )
                 }.asSingle
             )?.let { soknadData ->
@@ -75,7 +79,8 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                     journalpostId = soknadData.journalPostId,
                     fodselsnummer = soknadData.fnr,
                     brukerbehandlingId = soknadData.brukerbehandlingId,
-                    vedlegg = vedlegg
+                    vedlegg = vedlegg,
+                    registrertDato = soknadData.registrertDato
                 )
             }
         }
@@ -94,6 +99,7 @@ private class SoknadVisitor(soknad: Soknad) :
     lateinit var journalpostId: String
     lateinit var fodselsnummer: String
     lateinit var brukerbehandlingId: String
+    lateinit var registrertDato: ZonedDateTime
     val vedlegg = mutableListOf<VedleggData>()
 
     init {
@@ -104,12 +110,14 @@ private class SoknadVisitor(soknad: Soknad) :
         tilstand: Soknad.Tilstand,
         journalPostId: String,
         fodselsnummer: String,
-        brukerbehandlingsId: String
+        brukerbehandlingsId: String,
+        registrertDato: ZonedDateTime
     ) {
         this.tilstand = tilstand.type.name
         this.journalpostId = journalPostId
         this.fodselsnummer = fodselsnummer
         this.brukerbehandlingId = brukerbehandlingsId
+        this.registrertDato = registrertDato
     }
 
     override fun visitVedlegg(vedlegg: List<Vedlegg>) {
@@ -130,7 +138,8 @@ private data class SoknadData(
     val tilstand: String,
     val journalPostId: String,
     val fnr: String,
-    val brukerbehandlingId: String
+    val brukerbehandlingId: String,
+    val registrertDato: ZonedDateTime
 ) {
     fun tilstandType(): Soknad.Tilstand = when (SoknadTilstandType.valueOf(tilstand)) {
         SoknadTilstandType.MOTTATT -> Soknad.Mottatt

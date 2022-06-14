@@ -35,7 +35,8 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
                     journalpostId = hendelse.journalpostId(),
                     fodselsnummer = hendelse.fodselsnummer(),
                     brukerbehandlingId = hendelse.soknadBrukerbehandlingsId(),
-                    vedlegg = hendelse.vedlegg()
+                    vedlegg = hendelse.vedlegg(),
+                    registrertDato = hendelse.datoRegistrert()
                 )
             }
             else -> {

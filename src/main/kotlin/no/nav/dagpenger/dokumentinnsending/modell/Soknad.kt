@@ -3,18 +3,20 @@ package no.nav.dagpenger.dokumentinnsending.modell
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType.AVVENTER_VEDLEGG
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType.KOMPLETT
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType.MOTTATT
+import java.time.ZonedDateTime
 
 class Soknad(
     private var tilstand: Tilstand = Mottatt,
     private val journalpostId: String,
     private val fodselsnummer: String,
     private val brukerbehandlingId: String,
+    private val registrertDato: ZonedDateTime,
     private val vedlegg: List<Vedlegg> = listOf()
 
 ) : Aktivitetskontekst {
     fun accept(visitor: SoknadVisitor) {
         visitor.visitVedlegg(vedlegg)
-        visitor.visit(tilstand, journalpostId, fodselsnummer, brukerbehandlingId)
+        visitor.visit(tilstand, journalpostId, fodselsnummer, brukerbehandlingId, registrertDato)
     }
 
     fun handle(hendelse: SoknadMottattHendelse) {

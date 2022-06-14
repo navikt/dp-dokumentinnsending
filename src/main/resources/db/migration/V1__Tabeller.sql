@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS soknad_v1
     journalpost_id      BIGINT UNIQUE            NOT NULL,
     fodselnummer        VARCHAR(11)              NOT NULL,
     brukerbehandling_id VARCHAR(11)              NOT NULL UNIQUE,
-    opprettet           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc')
+    registrert_dato     TiMESTAMP WITH TIME ZONE NOT NULL,
+    opprettet           TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'cet')
 );
 
 CREATE TABLE IF NOT EXISTS vedlegg_v1
@@ -14,5 +15,5 @@ CREATE TABLE IF NOT EXISTS vedlegg_v1
     soknad_id           BIGINT REFERENCES soknad_v1 (id) NOT NULL,
     behandlingskjede_id VARCHAR(11),
     status              VARCHAR(64)                      NOT NULL,
-    opprettet           TIMESTAMP WITH TIME ZONE         NOT NULL DEFAULT (NOW() AT TIME ZONE 'utc')
+    opprettet           TIMESTAMP WITH TIME ZONE         NOT NULL DEFAULT (NOW() AT TIME ZONE 'cet')
 )
