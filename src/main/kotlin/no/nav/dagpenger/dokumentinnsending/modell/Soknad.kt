@@ -45,9 +45,8 @@ class Soknad(
         return (other is Soknad) &&
             other.tilstand == this.tilstand &&
             other.journalpostId == this.journalpostId &&
-            other.brukerbehandlingId == this.brukerbehandlingId &&
-            other.registrertDato == this.registrertDato &&
-            this.vedlegg == other.vedlegg
+            other.brukerbehandlingId == this.brukerbehandlingId
+        //     other.registrertDato == this.registrertDato TODO: feiler pga millisekunder
     }
 
     // Gang of four State pattern

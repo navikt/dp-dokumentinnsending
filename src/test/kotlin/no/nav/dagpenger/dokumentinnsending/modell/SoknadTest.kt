@@ -1,5 +1,7 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
+import lagIkkeInnsendtVedlegg
+import lagInnsendtVedlegg
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -11,12 +13,11 @@ internal class SoknadTest {
 
     @Test
     fun erKomplett() {
-        assertTrue(lagSoknad(vedlegg = listOf(lagVedlegg(innsendingStatus = InnsendingStatus.INNSENDT))).erKomplett())
+        assertTrue(lagSoknad(vedlegg = listOf(lagInnsendtVedlegg())).erKomplett())
         assertFalse(
             lagSoknad(
                 vedlegg = listOf(
-                    lagVedlegg(innsendingStatus = InnsendingStatus.INNSENDT),
-                    lagVedlegg(innsendingStatus = InnsendingStatus.IKKE_INNSENDT)
+                    lagInnsendtVedlegg(), lagIkkeInnsendtVedlegg()
                 )
             ).erKomplett()
         )
@@ -24,12 +25,12 @@ internal class SoknadTest {
 
     @Test
     fun testEquals() {
-        val vedleggliste = listOf(lagVedlegg(), lagVedlegg())
+        val vedleggliste = listOf(lagInnsendtVedlegg(), lagInnsendtVedlegg())
         assertEquals(lagSoknad(vedlegg = vedleggliste), lagSoknad(vedlegg = vedleggliste))
-        assertNotEquals(lagSoknad(vedlegg = vedleggliste), lagSoknad(vedlegg = listOf(lagVedlegg())))
+        assertNotEquals(lagSoknad(vedlegg = vedleggliste), lagSoknad(vedlegg = listOf(lagInnsendtVedlegg())))
         assertNotEquals(
             lagSoknad(vedlegg = vedleggliste),
-            lagSoknad(vedlegg = listOf(lagVedlegg(), lagVedlegg(innsendingStatus = InnsendingStatus.INNSENDT)))
+            lagSoknad(vedlegg = listOf(lagInnsendtVedlegg(), lagIkkeInnsendtVedlegg()))
         )
     }
 }
@@ -52,6 +53,3 @@ private fun lagSoknad(
         registrertDato = registrertDato
     )
 }
-
-private fun lagVedlegg(bid: String = "hjk", innsendingStatus: InnsendingStatus = InnsendingStatus.IKKE_INNSENDT) =
-    Vedlegg(bid, innsendingStatus)

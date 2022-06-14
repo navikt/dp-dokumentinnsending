@@ -1,32 +1,37 @@
 package no.nav.dagpenger.dokumentinnsending.db
 
-import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
+import lagIkkeInnsendtVedlegg
+import lagInnsendtVedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
-import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 internal class PosgresSoknadRepositoryTest {
+    val registrertDato = ZonedDateTime.now()
+    val vedleggListe = mutableListOf(
+        lagInnsendtVedlegg(jpId = "456", bbId = "123", datoRegistrert = registrertDato),
+        lagInnsendtVedlegg(jpId = "456", bbId = "123", datoRegistrert = registrertDato),
+        lagIkkeInnsendtVedlegg(
+            jpId = "456",
+            bbId = "123",
+            datoRegistrert = registrertDato
+        )
+    )
     private val soknad = Soknad(
         tilstand = Soknad.Mottatt,
         journalpostId = "456",
         fodselsnummer = "fnr",
         brukerbehandlingId = "123",
-        vedlegg = mutableListOf(
-            Vedlegg("123", InnsendingStatus.INNSENDT),
-            Vedlegg("123", InnsendingStatus.IKKE_INNSENDT),
-            Vedlegg("123", InnsendingStatus.IKKE_INNSENDT),
-        ),
-        registrertDato = ZonedDateTime.now()
+        vedlegg = vedleggListe,
+        registrertDato = registrertDato
     )
 
     @Test
     fun `lagrer og henter søknad`() {
         PostgresTestHelper.withMigratedDb { ds ->
             val repo = PostgresSoknadRepository(ds)
-
             repo.lagre(soknad)
             assertEquals(soknad, repo.hent("123"))
         }
@@ -34,21 +39,21 @@ internal class PosgresSoknadRepositoryTest {
 
     @Test
     fun `Kan oppdatere søknad`() {
+
         PostgresTestHelper.withMigratedDb { ds ->
             val repo = PostgresSoknadRepository(ds).also { it.lagre(soknad) }
-
             repo.lagre(
                 Soknad(
                     tilstand = Soknad.Mottatt,
-                    journalpostId = "456",
+                    journalpostId = "486",
                     fodselsnummer = "fnr",
                     brukerbehandlingId = "123",
                     vedlegg = mutableListOf(
-                        Vedlegg("123", InnsendingStatus.INNSENDT),
-                        Vedlegg("123", InnsendingStatus.INNSENDT),
-                        Vedlegg("123", InnsendingStatus.INNSENDT),
+                        lagInnsendtVedlegg(bbId = "123", jpId = "468"),
+                        lagInnsendtVedlegg(bbId = "123", jpId = "468"),
+                        lagInnsendtVedlegg(bbId = "123", jpId = "468")
                     ),
-                    registrertDato = ZonedDateTime.now()
+                    registrertDato = registrertDato
                 )
             )
             assertTrue(repo.hent("123")?.erKomplett() ?: false)

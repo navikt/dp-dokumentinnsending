@@ -39,7 +39,8 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                 )!!
 
                 tx.batchPreparedNamedStatement(
-                    "INSERT INTO vedlegg_v1(soknad_id,journalpost_id behandlingskjede_id,status) VALUES(:internId, :jpid ,:bhid, :status)",
+                    """INSERT INTO vedlegg_v1(soknad_id,journalpost_id, behandlingskjede_id,status,registrert_dato,navn,skjemakode) 
+                       VALUES(:internId, :jpid ,:bhid, :status, :regDato, :navn, :skjemakode)""".trimMargin(),
                     visitor.vedlegg.dbParametre(internId)
 
                 )
@@ -75,8 +76,10 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                         Vedlegg(
                             innsendingStatus = InnsendingStatus.valueOf(row.string("status")),
                             brukerbehandlingskjedeId = row.string("behandlingskjede_id"),
-                            journalpostId = row.string("journalpost_id")
-
+                            journalpostId = row.string("journalpost_id"),
+                            navn = row.string("navn"),
+                            skjemaKode = row.string("skjemakode"),
+                            registrertDato = row.zonedDateTime("registrert_dato")
                         )
                     }.asList
                 )
@@ -96,9 +99,12 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
         return this.map {
             mapOf(
                 "internId" to internId,
-                "jpid" to it.journalPostId,
+                "jpid" to it.journalPostId.toLong(),
                 "bhid" to it.behandlingKjedeId,
-                "status" to it.status
+                "status" to it.status,
+                "regDato" to it.registrertDato,
+                "navn" to it.navn,
+                "skjemakode" to it.skjemakode
             )
         }
     }
@@ -137,18 +143,35 @@ private class SoknadVisitor(soknad: Soknad) :
         }
     }
 
-    override fun visit(status: InnsendingStatus, brukerbehandlinskjedeId: String, journalPostId: String) {
+    override fun visit(
+        status: InnsendingStatus,
+        brukerbehandlinskjedeId: String,
+        journalPostId: String,
+        navn: String,
+        skjemakode: String,
+        registrertDato: ZonedDateTime
+    ) {
         vedlegg.add(
             VedleggData(
                 status = status.name,
                 behandlingKjedeId = brukerbehandlinskjedeId,
-                journalPostId = journalPostId
+                journalPostId = journalPostId,
+                registrertDato = registrertDato,
+                navn = navn,
+                skjemakode = skjemakode
             )
         )
     }
 }
 
-private data class VedleggData(val status: String, val behandlingKjedeId: String, val journalPostId: String)
+private data class VedleggData(
+    val status: String,
+    val behandlingKjedeId: String,
+    val journalPostId: String,
+    val registrertDato: ZonedDateTime,
+    val navn: String,
+    val skjemakode: String
+)
 
 private data class SoknadData(
     val internId: Long,

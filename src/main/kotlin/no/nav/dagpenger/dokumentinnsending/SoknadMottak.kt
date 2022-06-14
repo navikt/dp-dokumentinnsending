@@ -11,6 +11,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 
 internal class SoknadMottak(
     rapidsConnection: RapidsConnection,
@@ -47,18 +48,20 @@ internal class SoknadMottak(
 
 private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
     val brukerBehandlingId = this["søknadsData.brukerBehandlingId"].asText()
+    val journalpostId = this["journalpostId"].asText()
+    val datoRegistrert = this["datoRegistrert"].asZonedDateTime()
     return SoknadMottattHendelse(
         fodselsnummer = this["fødselsnummer"].asText(),
-        journalpostId = this["journalpostId"].asText(),
-        datoRegistrert = this["datoRegistrert"].asZonedDateTime(),
+        journalpostId = journalpostId,
+        datoRegistrert = datoRegistrert,
         brukerBehandlingsId = brukerBehandlingId,
-        vedlegg = this.vedlegg(brukerBehandlingId)
+        vedlegg = this.vedlegg(brukerBehandlingId, journalpostId, datoRegistrert)
     )
 }
 
 private fun JsonNode.asZonedDateTime() = this.asLocalDateTime().atZone(ZoneId.of("Europe/Oslo"))
 
-private fun JsonMessage.vedlegg(brukerBehandlingId: String): List<Vedlegg> {
+private fun JsonMessage.vedlegg(brukerBehandlingId: String, journalpostId: String, registrertDato: ZonedDateTime): List<Vedlegg> {
     return this["søknadsData.vedlegg"].map { node ->
         Vedlegg(
             brukerbehandlingskjedeId = brukerBehandlingId,
@@ -68,7 +71,10 @@ private fun JsonMessage.vedlegg(brukerBehandlingId: String): List<Vedlegg> {
                     else -> InnsendingStatus.IKKE_INNSENDT
                 }
             },
-            journalpostId =  node[""]
+            journalpostId = journalpostId,
+            navn = node["navn"].asText(),
+            skjemaKode = node["skjemaNummer"].asText(),
+            registrertDato = registrertDato
         )
     }
 }

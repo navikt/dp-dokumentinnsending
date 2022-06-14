@@ -17,9 +17,9 @@ internal class EttersendingMottak(rapidsConnection: RapidsConnection) : River.Pa
             validate {
                 it.requireKey(
                     "fødselsnummer",
-                    "journalpostId", //Unikt pr vedlegg
+                    "journalpostId", // Unikt pr vedlegg
                     "datoRegistrert",
-                    "søknadsData.brukerBehandlingId", //unikt pr vedlegg
+                    "søknadsData.brukerBehandlingId", // unikt pr vedlegg
                     "søknadsData.behandlingskjedeId", // egentlig søknads Id
                 )
             }
