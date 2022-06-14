@@ -10,8 +10,8 @@ import kotlin.test.assertEquals
 internal class PosgresSoknadRepositoryTest {
 
     @Test
-    fun `lagre søknad`() {
-        PostgresTestHelper.withMigratedDb {
+    fun `lagrer og henter søknad`() {
+        PostgresTestHelper.withMigratedDb { ds ->
             val soknad = Soknad(
                 tilstand = Soknad.Mottatt,
                 journalpostId = "456",
@@ -25,10 +25,11 @@ internal class PosgresSoknadRepositoryTest {
                 registrertDato = ZonedDateTime.now()
             )
 
-            val repo = PostgresSoknadRepository(PostgresTestHelper.dataSource)
+            val repo = PostgresSoknadRepository(ds)
             repo.lagre(soknad)
 
             assertEquals(soknad, repo.hent("123"))
         }
     }
+
 }
