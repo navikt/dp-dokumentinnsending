@@ -69,7 +69,7 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
 
                         )
                     }.asList
-                ).toMutableList()
+                )
                 Soknad(
                     tilstand = soknadData.tilstandType(),
                     journalpostId = soknadData.journalPostId,
@@ -81,7 +81,7 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
         }
     }
 
-    private fun MutableList<VedleggData>.dbParametre(internId: Long): List<Map<String, Any>> {
+    private fun List<VedleggData>.dbParametre(internId: Long): List<Map<String, Any>> {
         return this.map {
             mapOf("internId" to internId, "bhid" to it.behandlingKjedeId, "status" to it.status)
         }
