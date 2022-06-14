@@ -46,6 +46,7 @@ class Soknad(
             other.tilstand == this.tilstand &&
             other.journalpostId == this.journalpostId &&
             other.brukerbehandlingId == this.brukerbehandlingId &&
+            other.registrertDato == this.registrertDato &&
             this.vedlegg == other.vedlegg
     }
 

@@ -10,6 +10,7 @@ import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.VedleggVisitor
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.sql.DataSource
 
@@ -21,20 +22,24 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                 val internId = tx.run(
                     queryOf(
                         """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,brukerbehandling_id,tilstand, registrert_dato) 
-                        VALUES(:jpid,:fnr,:bid,:tilstand,:regdato) RETURNING id 
+                            VALUES(:jpid,:fnr,:bid,:tilstand,:regdato) 
+                            ON CONFLICT(journalpost_id,brukerbehandling_id) DO UPDATE SET sist_endret = :sistEndret 
+                            RETURNING id 
                         """.trimIndent(),
                         mapOf(
                             "jpid" to visitor.journalpostId.toLong(),
                             "fnr" to visitor.fodselsnummer,
                             "bid" to visitor.brukerbehandlingId,
                             "tilstand" to visitor.tilstand,
-                            "regdato" to visitor.registrertDato
+                            "regdato" to visitor.registrertDato,
+                            "sistEndret" to ZonedDateTime.now(ZoneId.of("Europe/Oslo"))
+
                         )
                     ).map { row -> row.long("id") }.asSingle
                 )!!
 
                 tx.batchPreparedNamedStatement(
-                    "INSERT INTO vedlegg_v1(soknad_id, behandlingskjede_id,status) VALUES(:internId, :bhid, :status)",
+                    "INSERT INTO vedlegg_v1(soknad_id,journalpost_id behandlingskjede_id,status) VALUES(:internId, :jpid ,:bhid, :status)",
                     visitor.vedlegg.dbParametre(internId)
 
                 )
@@ -69,7 +74,8 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                     ).map { row ->
                         Vedlegg(
                             innsendingStatus = InnsendingStatus.valueOf(row.string("status")),
-                            brukerbehandlingskjedeId = row.string("behandlingskjede_id")
+                            brukerbehandlingskjedeId = row.string("behandlingskjede_id"),
+                            journalpostId = row.string("journalpost_id")
 
                         )
                     }.asList
@@ -88,7 +94,12 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
 
     private fun List<VedleggData>.dbParametre(internId: Long): List<Map<String, Any>> {
         return this.map {
-            mapOf("internId" to internId, "bhid" to it.behandlingKjedeId, "status" to it.status)
+            mapOf(
+                "internId" to internId,
+                "jpid" to it.journalPostId,
+                "bhid" to it.behandlingKjedeId,
+                "status" to it.status
+            )
         }
     }
 }
@@ -126,12 +137,18 @@ private class SoknadVisitor(soknad: Soknad) :
         }
     }
 
-    override fun visit(status: InnsendingStatus, brukerbehandlinskjedeId: String) {
-        vedlegg.add(VedleggData(status.name, brukerbehandlinskjedeId))
+    override fun visit(status: InnsendingStatus, brukerbehandlinskjedeId: String, journalPostId: String) {
+        vedlegg.add(
+            VedleggData(
+                status = status.name,
+                behandlingKjedeId = brukerbehandlinskjedeId,
+                journalPostId = journalPostId
+            )
+        )
     }
 }
 
-private data class VedleggData(val status: String, val behandlingKjedeId: String)
+private data class VedleggData(val status: String, val behandlingKjedeId: String, val journalPostId: String)
 
 private data class SoknadData(
     val internId: Long,

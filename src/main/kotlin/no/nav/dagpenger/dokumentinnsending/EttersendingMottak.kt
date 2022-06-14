@@ -17,10 +17,10 @@ internal class EttersendingMottak(rapidsConnection: RapidsConnection) : River.Pa
             validate {
                 it.requireKey(
                     "fødselsnummer",
-                    "journalpostId",
+                    "journalpostId", //Unikt pr vedlegg
                     "datoRegistrert",
-                    "søknadsData.brukerBehandlingId",
-                    "søknadsData.behandlingskjedeId",
+                    "søknadsData.brukerBehandlingId", //unikt pr vedlegg
+                    "søknadsData.behandlingskjedeId", // egentlig søknads Id
                 )
             }
             validate { it.requireAny("type", listOf("Ettersending")) }

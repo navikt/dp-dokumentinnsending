@@ -8,5 +8,5 @@ interface SoknadVisitor {
 }
 
 interface VedleggVisitor {
-    fun visit(status: InnsendingStatus, brukerbehandlinskjedeId: String) {}
+    fun visit(status: InnsendingStatus, brukerbehandlinskjedeId: String, journalPostId: String) {}
 }

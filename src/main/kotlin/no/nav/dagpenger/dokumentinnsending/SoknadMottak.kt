@@ -67,7 +67,8 @@ private fun JsonMessage.vedlegg(brukerBehandlingId: String): List<Vedlegg> {
                     "LastetOpp" -> InnsendingStatus.INNSENDT
                     else -> InnsendingStatus.IKKE_INNSENDT
                 }
-            }
+            },
+            journalpostId =  node[""]
         )
     }
 }
