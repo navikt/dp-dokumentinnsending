@@ -9,7 +9,7 @@ class Soknad(
     private val journalpostId: String,
     private val fodselsnummer: String,
     private val brukerbehandlingId: String,
-    private val vedlegg: MutableList<Vedlegg> = mutableListOf()
+    private val vedlegg: List<Vedlegg> = listOf()
 
 ) : Aktivitetskontekst {
     fun accept(visitor: SoknadVisitor) {
@@ -19,7 +19,6 @@ class Soknad(
 
     fun handle(hendelse: SoknadMottattHendelse) {
         kontekst(hendelse, "Søknad motatt")
-        vedlegg.addAll(hendelse.vedlegg())
         tilstand.handle(this, hendelse)
     }
 
@@ -39,6 +38,14 @@ class Soknad(
     )
 
     fun erKomplett(): Boolean = !vedlegg.any { it.status() == InnsendingStatus.IKKE_INNSENDT }
+
+    override fun equals(other: Any?): Boolean {
+        return (other is Soknad) &&
+            other.tilstand == this.tilstand &&
+            other.journalpostId == this.journalpostId &&
+            other.brukerbehandlingId == this.brukerbehandlingId &&
+            this.vedlegg == other.vedlegg
+    }
 
     // Gang of four State pattern
     interface Tilstand : Aktivitetskontekst {

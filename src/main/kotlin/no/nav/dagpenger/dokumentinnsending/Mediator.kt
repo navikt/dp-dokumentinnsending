@@ -8,6 +8,7 @@ import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
 import org.slf4j.MDC
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+
 internal class Mediator(private val soknadRepository: SoknadRepository) {
     fun handle(hendelse: SoknadMottattHendelse) {
         handle(hendelse) { soknad ->
@@ -28,13 +29,22 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
     }
 
     private fun soknad(hendelse: Hendelse): Soknad {
-        // hente eller lage
-        // hvis hente: søknad har allerede vedlegg --> liste skal ikke endres
-        return Soknad(
-            journalpostId = hendelse.journalpostId(),
-            fodselsnummer = hendelse.fodselsnummer(),
-            brukerbehandlingId = hendelse.soknadBrukerbehandlingsId()
-        )
+        return when (hendelse) {
+            is SoknadMottattHendelse -> {
+                Soknad(
+                    journalpostId = hendelse.journalpostId(),
+                    fodselsnummer = hendelse.fodselsnummer(),
+                    brukerbehandlingId = hendelse.soknadBrukerbehandlingsId(),
+                    vedlegg = hendelse.vedlegg()
+                )
+            }
+            else -> {
+                soknadRepository.hent(hendelse.soknadBrukerbehandlingsId())
+                    ?: throw IllegalStateException(
+                        "Fant ikke søknad med journalpostId ${hendelse.journalpostId()} og brukerbehandlingsId ${hendelse.soknadBrukerbehandlingsId()} på ${hendelse::class.simpleName}"
+                    )
+            }
+        }
     }
 
     private fun finalize(soknad: Soknad, hendelse: Hendelse) {
