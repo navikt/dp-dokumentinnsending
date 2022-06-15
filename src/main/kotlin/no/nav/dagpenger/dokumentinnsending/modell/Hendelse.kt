@@ -1,12 +1,13 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
 abstract class Hendelse protected constructor(
-    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+    private val journalpostId: String,
+    private val eksternSoknadId: String,
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg(),
 ) : IAktivitetslogg by aktivitetslogg, Aktivitetskontekst {
 
-    abstract fun journalpostId(): String
-    abstract fun fodselsnummer(): String
-    abstract fun soknadBrukerbehandlingsId(): String
+    fun journalpostId(): String = journalpostId
+    fun eksternSoknadId(): String = eksternSoknadId
 
     init {
         aktivitetslogg.kontekst(this)
@@ -18,7 +19,7 @@ abstract class Hendelse protected constructor(
                 it,
                 mapOf(
                     "journalpostId" to journalpostId(),
-                    "brukerbehandlingsid" to soknadBrukerbehandlingsId()
+                    "eksternSøknadId" to eksternSoknadId()
                 )
             )
         }

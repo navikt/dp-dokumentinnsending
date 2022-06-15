@@ -1,6 +1,7 @@
 package no.nav.dagpenger.dokumentinnsending
 
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -8,27 +9,29 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlin.test.assertEquals
 
 internal class SoknadMottakTest {
     private val testRapid = TestRapid()
 
     @Test
     fun `håndterer innsending_mottatt hendelser`() {
+        val hendelseSlot = slot<SoknadMottattHendelse>()
         val mockMediator = mockk<Mediator>(relaxed = true)
         val forventetDato = ZonedDateTime.now(ZoneId.of("Europe/Oslo"))
         SoknadMottak(testRapid, mockMediator)
         testRapid.sendTestMessage(søknadJson(forventetDato.toLocalDateTime()))
         verify(exactly = 1) {
             mockMediator.handle(
-                SoknadMottattHendelse(
-                    fodselsnummer = "123",
-                    journalpostId = "123kkh",
-                    brukerBehandlingsId = "123hurra",
-                    datoRegistrert = forventetDato,
-                    vedlegg = listOf(),
-                )
+                capture(hendelseSlot)
             )
         }
+        val actual = hendelseSlot.captured
+        assertEquals("123", actual.fodselsnummer())
+        assertEquals("123kkh", actual.journalpostId())
+        assertEquals("123hurra", actual.eksternSoknadId())
+        assertEquals(forventetDato, actual.datoRegistrert())
+        assertEquals(0, actual.vedlegg().size)
     }
 
     @Test

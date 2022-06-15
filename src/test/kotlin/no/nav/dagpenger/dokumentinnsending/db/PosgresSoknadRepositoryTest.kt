@@ -20,7 +20,7 @@ internal class PosgresSoknadRepositoryTest {
     @Test
     fun `lagrer og henter søknad`() {
         val brukerbehandlingId = "123"
-        val soknad = lagSoknad(brukerbehandlingId = brukerbehandlingId)
+        val soknad = lagSoknad(eksternSoknadId = brukerbehandlingId)
         PostgresTestHelper.withMigratedDb { ds ->
             val repo = PostgresSoknadRepository(ds)
             repo.lagre(soknad)
@@ -35,10 +35,10 @@ internal class PosgresSoknadRepositoryTest {
             val repo = PostgresSoknadRepository(ds).also {
                 it.lagre(
                     lagSoknad(
-                        brukerbehandlingId = soknadBrukerbehandlingId,
+                        eksternSoknadId = soknadBrukerbehandlingId,
                         vedlegg = listOf(
-                            lagInnsendtVedlegg(bbId = "123", jpId = "468"),
-                            lagIkkeInnsendtVedlegg(bbId = "123", jpId = "468"),
+                            lagInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
+                            lagIkkeInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
                         )
                     )
                 )
@@ -48,11 +48,11 @@ internal class PosgresSoknadRepositoryTest {
 
             repo.lagre(
                 lagSoknad(
-                    brukerbehandlingId = soknadBrukerbehandlingId,
+                    eksternSoknadId = soknadBrukerbehandlingId,
                     vedlegg = listOf(
-                        lagInnsendtVedlegg(bbId = "123", jpId = "468"),
-                        lagInnsendtVedlegg(bbId = "123", jpId = "468"),
-                        lagInnsendtVedlegg(bbId = "123", jpId = "468"),
+                        lagInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
+                        lagInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
+                        lagInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
                     )
                 )
             )
@@ -96,13 +96,13 @@ private class SoknadTestVisitor(soknad: Soknad) : SoknadVisitor, VedleggVisitor 
         tilstand: Soknad.Tilstand,
         journalPostId: String,
         fodselsnummer: String,
-        brukerbehandlingsId: String,
+        eksternSoknadId: String,
         registrertDato: ZonedDateTime
     ) {
         this.tilstand = tilstand
         this.journalPostId = journalPostId
         this.fodselsnummer = fodselsnummer
-        this.brukerbehandlingsId = brukerbehandlingsId
+        this.brukerbehandlingsId = eksternSoknadId
         this.registrertDato = registrertDato
     }
 
@@ -112,7 +112,7 @@ private class SoknadTestVisitor(soknad: Soknad) : SoknadVisitor, VedleggVisitor 
 
     override fun visit(
         status: InnsendingStatus,
-        brukerbehandlinskjedeId: String,
+        eksternSoknadId: String,
         journalPostId: String,
         navn: String,
         skjemakode: String,
@@ -122,7 +122,7 @@ private class SoknadTestVisitor(soknad: Soknad) : SoknadVisitor, VedleggVisitor 
         this.vedlegg.add(
             VedleggTestData(
                 status,
-                brukerbehandlinskjedeId,
+                eksternSoknadId,
                 journalPostId,
                 navn,
                 skjemakode,

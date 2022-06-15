@@ -11,15 +11,17 @@ fun main() {
 
 internal object App : RapidsConnection.StatusListener {
     private val rapidsConnection = RapidApplication.create(Configuration.config)
+    private val mediator = Mediator(PostgresSoknadRepository())
 
     init {
         rapidsConnection.register(this)
         SoknadMottak(
             rapidsConnection = rapidsConnection,
-            mediator = Mediator(PostgresSoknadRepository())
+            mediator = mediator
         )
         EttersendingMottak(
-            rapidsConnection = rapidsConnection
+            rapidsConnection = rapidsConnection,
+            mediator = mediator
         )
     }
 

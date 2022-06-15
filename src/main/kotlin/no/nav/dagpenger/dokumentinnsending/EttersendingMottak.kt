@@ -6,7 +6,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-internal class EttersendingMottak(rapidsConnection: RapidsConnection) : River.PacketListener {
+internal class EttersendingMottak(rapidsConnection: RapidsConnection, private val mediator: Mediator) :
+    River.PacketListener {
     companion object {
         private val sikkerlogg = KotlinLogging.logger("tjenestekall.EttersendingMottak")
     }

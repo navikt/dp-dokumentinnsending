@@ -34,15 +34,15 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
                 Soknad(
                     journalpostId = hendelse.journalpostId(),
                     fodselsnummer = hendelse.fodselsnummer(),
-                    brukerbehandlingId = hendelse.soknadBrukerbehandlingsId(),
+                    eksternSoknadId = hendelse.eksternSoknadId(),
                     vedlegg = hendelse.vedlegg(),
                     registrertDato = hendelse.datoRegistrert()
                 )
             }
             else -> {
-                soknadRepository.hent(hendelse.soknadBrukerbehandlingsId())
+                soknadRepository.hent(hendelse.eksternSoknadId())
                     ?: throw IllegalStateException(
-                        "Fant ikke søknad med journalpostId ${hendelse.journalpostId()} og brukerbehandlingsId ${hendelse.soknadBrukerbehandlingsId()} på ${hendelse::class.simpleName}"
+                        "Fant ikke søknad med journalpostId ${hendelse.journalpostId()} og brukerbehandlingsId ${hendelse.eksternSoknadId()} på ${hendelse::class.simpleName}"
                     )
             }
         }

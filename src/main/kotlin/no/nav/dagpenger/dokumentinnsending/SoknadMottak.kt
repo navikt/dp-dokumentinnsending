@@ -54,7 +54,7 @@ private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
         fodselsnummer = this["fødselsnummer"].asText(),
         journalpostId = journalpostId,
         datoRegistrert = datoRegistrert,
-        brukerBehandlingsId = brukerBehandlingId,
+        eksternSoknadId = brukerBehandlingId,
         vedlegg = this.vedlegg(brukerBehandlingId, journalpostId, datoRegistrert)
     )
 }
@@ -64,7 +64,7 @@ private fun JsonNode.asZonedDateTime() = this.asLocalDateTime().atZone(ZoneId.of
 private fun JsonMessage.vedlegg(brukerBehandlingId: String, journalpostId: String, registrertDato: ZonedDateTime): List<Vedlegg> {
     return this["søknadsData.vedlegg"].map { node ->
         Vedlegg(
-            brukerbehandlingskjedeId = brukerBehandlingId,
+            eksternSoknadId = brukerBehandlingId,
             innsendingStatus = node["innsendingsvalg"].asText().let {
                 when (it) {
                     "LastetOpp" -> InnsendingStatus.INNSENDT

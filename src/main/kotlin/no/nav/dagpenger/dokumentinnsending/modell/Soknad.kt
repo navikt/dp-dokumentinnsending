@@ -9,14 +9,14 @@ class Soknad(
     private var tilstand: Tilstand = Mottatt,
     private val journalpostId: String,
     private val fodselsnummer: String,
-    private val brukerbehandlingId: String,
+    private val eksternSoknadId: String,
     private val registrertDato: ZonedDateTime,
     private val vedlegg: List<Vedlegg> = listOf()
 
 ) : Aktivitetskontekst {
     fun accept(visitor: SoknadVisitor) {
         visitor.visitVedlegg(vedlegg)
-        visitor.visit(tilstand, journalpostId, fodselsnummer, brukerbehandlingId, registrertDato)
+        visitor.visit(tilstand, journalpostId, fodselsnummer, eksternSoknadId, registrertDato)
     }
 
     fun handle(hendelse: SoknadMottattHendelse) {

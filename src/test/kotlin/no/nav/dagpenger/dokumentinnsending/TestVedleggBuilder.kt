@@ -9,7 +9,7 @@ internal fun lagSoknad(
     tilstand: Soknad.Tilstand = Soknad.Mottatt,
     journalpostId: String = "12345",
     fnr: String = "12345678910",
-    brukerbehandlingId: String = "hjk",
+    eksternSoknadId: String = "hjk",
     vedlegg: List<Vedlegg> = listOf(),
     registrertDato: ZonedDateTime = ZonedDateTime.now()
 
@@ -18,20 +18,20 @@ internal fun lagSoknad(
         tilstand = tilstand,
         journalpostId = journalpostId,
         fodselsnummer = fnr,
-        brukerbehandlingId = brukerbehandlingId,
+        eksternSoknadId = eksternSoknadId,
         vedlegg = vedlegg,
         registrertDato = registrertDato
     )
 }
 
 internal fun lagInnsendtVedlegg(
-    bbId: String = "123",
+    eksternSoknadId: String = "123",
     jpId: String = "778821",
     navn: String = tilfeldigNavn(),
     skjemaKode: String = "T8",
     datoRegistrert: ZonedDateTime = ZonedDateTime.now()
 ) = Vedlegg(
-    brukerbehandlingskjedeId = bbId,
+    eksternSoknadId = eksternSoknadId,
     innsendingStatus = InnsendingStatus.INNSENDT,
     journalpostId = jpId,
     navn = navn,
@@ -40,13 +40,13 @@ internal fun lagInnsendtVedlegg(
 )
 
 internal fun lagIkkeInnsendtVedlegg(
-    bbId: String = "123",
+    eksternSoknadId: String = "123",
     jpId: String = "778821",
     navn: String = tilfeldigNavn(),
     skjemaKode: String = "T8",
     datoRegistrert: ZonedDateTime = ZonedDateTime.now()
 ) = Vedlegg(
-    brukerbehandlingskjedeId = bbId,
+    eksternSoknadId = eksternSoknadId,
     innsendingStatus = InnsendingStatus.IKKE_INNSENDT,
     journalpostId = jpId,
     navn = navn,

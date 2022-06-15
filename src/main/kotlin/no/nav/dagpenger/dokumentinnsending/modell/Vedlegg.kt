@@ -3,7 +3,7 @@ package no.nav.dagpenger.dokumentinnsending.modell
 import java.time.ZonedDateTime
 
 class Vedlegg(
-    private val brukerbehandlingskjedeId: String,
+    private val eksternSoknadId: String,
     private val innsendingStatus: InnsendingStatus,
     private val journalpostId: String,
     private val navn: String,
@@ -14,7 +14,7 @@ class Vedlegg(
     fun accept(visitor: VedleggVisitor) {
         visitor.visit(
             this.innsendingStatus,
-            this.brukerbehandlingskjedeId,
+            this.eksternSoknadId,
             this.journalpostId, this.navn, this.skjemaKode, this.registrertDato
         )
     }
@@ -23,9 +23,9 @@ class Vedlegg(
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         return SpesifikkKontekst(
-            "Vedleggs",
+            "Vedlegg",
             mapOf(
-                "brukerbehandlingskjedeId" to brukerbehandlingskjedeId,
+                "eksternSoknadId" to eksternSoknadId,
                 "status" to innsendingStatus.name,
                 "journalpostId" to journalpostId
             )
