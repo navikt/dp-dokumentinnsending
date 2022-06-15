@@ -33,7 +33,7 @@ internal class EttersendingMottakTest {
         }
         val actual = hendelseSlot.captured
         assertEquals("123kkh", actual.journalpostId())
-        assertEquals("123hurra", actual.eksternSoknadId())
+        assertEquals("123hurra8", actual.eksternSoknadId())
         assertEquals(2, actual.vedlegg().size)
     }
 
@@ -62,6 +62,7 @@ private fun ettersendingJson(datoRegistrert: LocalDateTime) = """{
   "type": "Ettersending",
   "datoRegistrert": "$datoRegistrert",
   "søknadsData": {
+    "behandlingskjedeId": "123hurra8",
     "brukerBehandlingId": "123hurra",
     "vedlegg": [
     {

@@ -46,7 +46,6 @@ internal class MediatorE2ETest {
 }
 
 private fun søknadJson(brukerBehandlingsId: String, innsendingsValg: String = "SendesSenere") =
-
     """{
   "@event_name": "innsending_mottatt",
   "@opprettet": "${LocalDateTime.now()}",
@@ -100,3 +99,60 @@ private fun søknadJson(brukerBehandlingsId: String, innsendingsValg: String = "
   } 
 }
     """.trimIndent()
+
+private fun ettersendingJson(datoRegistrert: LocalDateTime) =
+    //language=json
+    """{
+  "@event_name": "innsending_mottatt",
+  "@opprettet": "${LocalDateTime.now()}",
+  "fødselsnummer": "123",
+  "journalpostId": "02875948",
+  "skjemaKode": "NAV 03-102.23",
+  "tittel": "Tittel",
+  "type": "Ettersending",
+  "datoRegistrert": "$datoRegistrert",
+  "søknadsData": {
+    "brukerBehandlingId": "123hurra",
+    "behandlingskjedeId": "123hurra8",
+    "vedlegg": [
+    {
+      "navn": "SJOKKERENDE ELEKTRIKER",
+      "urls": {},
+      "aarsak": "afsd",
+      "tittel": null,
+      "filnavn": null,
+      "faktumId": 380263325,
+      "mimetype": null,
+      "soknadId": 5220529,
+      "storrelse": 0,
+      "vedleggId": 30666838,
+      "skjemaNummer": "O2",
+      "opprettetDato": 1654780179734,
+      "innsendingsvalg": "SendesSenere",
+      "fillagerReferanse": "14f7abee-4eb9-43e8-9031-6ee802725479",
+      "skjemanummerTillegg": "sagtoppavarbeidsgiver",
+      "opprinneligInnsendingsvalg": null
+    },
+    {
+      "navn": "SJOKKERENDE ELEKTRIKER",
+      "urls": {},
+      "aarsak": "saf",
+      "tittel": null,
+      "filnavn": null,
+      "faktumId": 380263325,
+      "mimetype": null,
+      "soknadId": 5220529,
+      "storrelse": 0,
+      "vedleggId": 30666839,
+      "skjemaNummer": "T8",
+      "opprettetDato": 1654780179744,
+      "innsendingsvalg": "SendesSenere",
+      "fillagerReferanse": "8e557fc9-4a6d-4b52-8159-bf2c94450018",
+      "skjemanummerTillegg": "sagtoppavarbeidsgiver",
+      "opprinneligInnsendingsvalg": null
+    }
+  ],
+    "skjemaNummer": "NAV12"
+  }
+}
+""".trimIndent()

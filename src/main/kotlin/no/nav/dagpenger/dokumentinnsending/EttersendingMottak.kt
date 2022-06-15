@@ -26,7 +26,8 @@ internal class EttersendingMottak(rapidsConnection: RapidsConnection, private va
                     "journalpostId",
                     "datoRegistrert",
                     "søknadsData.vedlegg",
-                    "søknadsData.brukerBehandlingId"
+                    "søknadsData.brukerBehandlingId",
+                    "søknadsData.behandlingskjedeId"
                 )
             }
             validate { it.requireAny("type", listOf("Ettersending")) }
@@ -39,9 +40,11 @@ internal class EttersendingMottak(rapidsConnection: RapidsConnection, private va
             EttersendingMottattHendelse(
                 vedlegg = packet.vedlegg(),
                 journalpostId = packet.journalpostId(),
-                eksternSoknadId = packet.brukerbehandlingId()
+                eksternSoknadId = packet.behandlingKjedeId()
 
             )
         )
     }
 }
+
+private fun JsonMessage.behandlingKjedeId(): String = this["søknadsData.behandlingskjedeId"].asText()
