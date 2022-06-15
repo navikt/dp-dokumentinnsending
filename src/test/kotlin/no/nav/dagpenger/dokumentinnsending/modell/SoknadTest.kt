@@ -22,20 +22,4 @@ internal class SoknadTest {
             ).erKomplett()
         )
     }
-
-    @Test
-    fun testEquals() {
-        val vedleggliste = listOf(lagInnsendtVedlegg(), lagInnsendtVedlegg())
-        assertEquals(lagSoknad(vedlegg = vedleggliste), lagSoknad(vedlegg = vedleggliste))
-        assertNotEquals(
-            lagSoknad(
-                journalpostId = "123",
-                vedlegg = vedleggliste
-            ),
-            lagSoknad(
-                journalpostId = "345",
-                vedlegg = listOf(lagInnsendtVedlegg())
-            )
-        )
-    }
 }

@@ -41,15 +41,6 @@ class Soknad(
 
     fun erKomplett(): Boolean = !vedlegg.any { it.status() == InnsendingStatus.IKKE_INNSENDT }
 
-    override fun equals(other: Any?): Boolean {
-        return (other is Soknad) &&
-            other.tilstand == this.tilstand &&
-            other.journalpostId == this.journalpostId &&
-            other.brukerbehandlingId == this.brukerbehandlingId
-
-        //     other.registrertDato == this.registrertDato TODO: feiler pga millisekunder
-    }
-
     // Gang of four State pattern
     interface Tilstand : Aktivitetskontekst {
         val type: SoknadTilstandType
