@@ -1,17 +1,13 @@
 package no.nav.dagpenger.dokumentinnsending
 
-import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
-import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
+import no.nav.dagpenger.dokumentinnsending.modell.asZonedDateTime
+import no.nav.dagpenger.dokumentinnsending.modell.vedlegg
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 internal class SoknadMottak(
     rapidsConnection: RapidsConnection,
@@ -39,9 +35,9 @@ internal class SoknadMottak(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        sikkerlogg.info { "Mottok ny søknad" }
-
         val mottatHendelse = packet.toSoknadMottatHendelse()
+        sikkerlogg.info("Mottok melding og innsending for søknad med journalpostId " +
+            "${mottatHendelse.journalpostId()} og brukerbehandlinId ${mottatHendelse.eksternSoknadId()}")
         mediator.handle(mottatHendelse)
     }
 }
@@ -57,24 +53,4 @@ private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
         eksternSoknadId = brukerBehandlingId,
         vedlegg = this.vedlegg(brukerBehandlingId, journalpostId, datoRegistrert)
     )
-}
-
-private fun JsonNode.asZonedDateTime() = this.asLocalDateTime().atZone(ZoneId.of("Europe/Oslo"))
-
-private fun JsonMessage.vedlegg(brukerBehandlingId: String, journalpostId: String, registrertDato: ZonedDateTime): List<Vedlegg> {
-    return this["søknadsData.vedlegg"].map { node ->
-        Vedlegg(
-            eksternSoknadId = brukerBehandlingId,
-            innsendingStatus = node["innsendingsvalg"].asText().let {
-                when (it) {
-                    "LastetOpp" -> InnsendingStatus.INNSENDT
-                    else -> InnsendingStatus.IKKE_INNSENDT
-                }
-            },
-            journalpostId = journalpostId,
-            navn = node["navn"].asText(),
-            skjemaKode = node["skjemaNummer"].asText(),
-            registrertDato = registrertDato
-        )
-    }
 }
