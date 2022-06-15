@@ -31,15 +31,6 @@ class Vedlegg(
             )
         )
     }
-
-    override fun equals(other: Any?): Boolean {
-        return other is Vedlegg &&
-            other.innsendingStatus == this.innsendingStatus &&
-            other.journalpostId == this.journalpostId &&
-            other.brukerbehandlingskjedeId == this.brukerbehandlingskjedeId &&
-            other.navn == this.navn &&
-            other.skjemaKode == this.skjemaKode
-    }
 }
 
 enum class InnsendingStatus {
