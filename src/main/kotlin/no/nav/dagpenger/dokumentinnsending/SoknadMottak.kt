@@ -2,7 +2,10 @@ package no.nav.dagpenger.dokumentinnsending
 
 import mu.KotlinLogging
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
-import no.nav.dagpenger.dokumentinnsending.modell.asZonedDateTime
+import no.nav.dagpenger.dokumentinnsending.modell.brukerbehandlingId
+import no.nav.dagpenger.dokumentinnsending.modell.datoRegistrert
+import no.nav.dagpenger.dokumentinnsending.modell.journalpostId
+import no.nav.dagpenger.dokumentinnsending.modell.mottakLogMelding
 import no.nav.dagpenger.dokumentinnsending.modell.vedlegg
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -36,16 +39,15 @@ internal class SoknadMottak(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val mottatHendelse = packet.toSoknadMottatHendelse()
-        sikkerlogg.info("Mottok melding og innsending for søknad med journalpostId " +
-            "${mottatHendelse.journalpostId()} og brukerbehandlinId ${mottatHendelse.eksternSoknadId()}")
+        sikkerlogg.info(packet.mottakLogMelding())
         mediator.handle(mottatHendelse)
     }
 }
 
 private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
-    val brukerBehandlingId = this["søknadsData.brukerBehandlingId"].asText()
-    val journalpostId = this["journalpostId"].asText()
-    val datoRegistrert = this["datoRegistrert"].asZonedDateTime()
+    val brukerBehandlingId = this.brukerbehandlingId()
+    val journalpostId = this.journalpostId()
+    val datoRegistrert = this.datoRegistrert()
     return SoknadMottattHendelse(
         fodselsnummer = this["fødselsnummer"].asText(),
         journalpostId = journalpostId,

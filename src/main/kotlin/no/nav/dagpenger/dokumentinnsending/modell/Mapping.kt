@@ -8,6 +8,15 @@ import java.time.ZonedDateTime
 
 internal fun JsonNode.asZonedDateTime() = this.asLocalDateTime().atZone(ZoneId.of("Europe/Oslo"))
 
+internal fun JsonMessage.datoRegistrert() = this["datoRegistrert"].asZonedDateTime()
+
+internal fun JsonMessage.journalpostId(): String = this["journalpostId"].asText()
+
+internal fun JsonMessage.brukerbehandlingId(): String = this["søknadsData.brukerBehandlingId"].asText()
+
+internal fun JsonMessage.mottakLogMelding(): String = "Mottok melding om ${this["type"]} for søknad med journalpostId " +
+    "${this.journalpostId()} og brukerbehandlingId ${this.brukerbehandlingId()}"
+
 internal fun JsonMessage.vedlegg(
     brukerBehandlingId: String,
     journalpostId: String,
