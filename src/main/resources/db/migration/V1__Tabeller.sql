@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS soknad_v1
     sist_endret         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'cet')
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS soknad_v1_jpid_bbid_unique ON soknad_v1 (journalpost_id, brukerbehandling_id);
 
 CREATE TABLE IF NOT EXISTS vedlegg_v1
 (

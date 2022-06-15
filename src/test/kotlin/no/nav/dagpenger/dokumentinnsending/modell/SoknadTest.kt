@@ -2,10 +2,10 @@ package no.nav.dagpenger.dokumentinnsending.modell
 
 import no.nav.dagpenger.dokumentinnsending.lagIkkeInnsendtVedlegg
 import no.nav.dagpenger.dokumentinnsending.lagInnsendtVedlegg
+import no.nav.dagpenger.dokumentinnsending.lagSoknad
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
@@ -38,23 +38,4 @@ internal class SoknadTest {
             )
         )
     }
-}
-
-private fun lagSoknad(
-    tilstand: Soknad.Tilstand = Soknad.Mottatt,
-    journalpostId: String = "anfkuh45",
-    fnr: String = "12345678910",
-    brukerbehandlingId: String = "hjk",
-    vedlegg: List<Vedlegg> = listOf(),
-    registrertDato: ZonedDateTime = ZonedDateTime.now()
-
-): Soknad {
-    return Soknad(
-        tilstand = tilstand,
-        journalpostId = journalpostId,
-        fodselsnummer = fnr,
-        brukerbehandlingId = brukerbehandlingId,
-        vedlegg = vedlegg,
-        registrertDato = registrertDato
-    )
 }

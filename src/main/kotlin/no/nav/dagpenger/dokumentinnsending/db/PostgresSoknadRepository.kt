@@ -21,9 +21,10 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
             session.transaction { tx ->
                 val internId = tx.run(
                     queryOf(
+                        //language=PostgreSQL
                         """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,brukerbehandling_id,tilstand, registrert_dato) 
                             VALUES(:jpid,:fnr,:bid,:tilstand,:regdato) 
-                            ON CONFLICT(journalpost_id,brukerbehandling_id) DO UPDATE SET sist_endret = :sistEndret 
+                            ON CONFLICT(brukerbehandling_id) DO UPDATE SET sist_endret = :sistEndret 
                             RETURNING id 
                         """.trimIndent(),
                         mapOf(
@@ -38,7 +39,16 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                     ).map { row -> row.long("id") }.asSingle
                 )!!
 
+                tx.run(
+                    queryOf(
+                        //language=PostgreSQL
+                        statement = """DELETE FROM vedlegg_v1 WHERE soknad_id=:soknadId""",
+                        paramMap = mapOf("soknadId" to internId)
+                    ).asExecute
+                )
+
                 tx.batchPreparedNamedStatement(
+                    //language=PostgreSQL
                     """INSERT INTO vedlegg_v1(soknad_id,journalpost_id, behandlingskjede_id,status,registrert_dato,navn,skjemakode) 
                        VALUES(:internId, :jpid ,:bhid, :status, :regDato, :navn, :skjemakode)""".trimMargin(),
                     visitor.vedlegg.dbParametre(internId)
