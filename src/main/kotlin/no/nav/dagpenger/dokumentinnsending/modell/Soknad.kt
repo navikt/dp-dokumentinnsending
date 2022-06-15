@@ -24,6 +24,11 @@ class Soknad(
         tilstand.handle(this, hendelse)
     }
 
+    fun handle(hendelse: EttersendingMottattHendelse) {
+        kontekst(hendelse, "Ettersending motatt")
+        tilstand.handle(this, hendelse)
+    }
+
     val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 
     private fun kontekst(hendelse: Hendelse, melding: String) {
@@ -46,6 +51,10 @@ class Soknad(
         val type: SoknadTilstandType
         fun handle(soknad: Soknad, motattHendelse: SoknadMottattHendelse) {
             motattHendelse.warn("Forventet ikke SøknadMottatHendelse i ${this.type.name} tilstand")
+        }
+
+        fun handle(soknad: Soknad, ettersendingMottattHendelse: EttersendingMottattHendelse) {
+            ettersendingMottattHendelse.warn("Forventet ikke EttersendingMotattHendelse i ${this.type.name} tilstand")
         }
     }
 
@@ -83,6 +92,14 @@ class Soknad(
                 )
             )
         }
+
+        override fun handle(soknad: Soknad, ettersendingMottattHendelse: EttersendingMottattHendelse) {
+            if (soknad.erKomplett()) {
+                soknad.tilstand(ettersendingMottattHendelse, Komplett)
+            } else {
+                soknad.tilstand(ettersendingMottattHendelse, AvventerVedlegg)
+            }
+        }
     }
 
     object AvventerVedlegg : Tilstand {
@@ -96,6 +113,14 @@ class Soknad(
                     "tilstand" to type.name
                 )
             )
+        }
+
+        override fun handle(soknad: Soknad, ettersendingMottattHendelse: EttersendingMottattHendelse) {
+            if (soknad.erKomplett()) {
+                soknad.tilstand(ettersendingMottattHendelse, Komplett)
+            } else {
+                soknad.tilstand(ettersendingMottattHendelse, AvventerVedlegg)
+            }
         }
     }
 

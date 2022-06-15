@@ -50,7 +50,6 @@ internal class EttersendingMottakTest {
 }
 
 //language=json
-//language=json
 private fun ettersendingJson(datoRegistrert: LocalDateTime) = """{
     
   "@event_name": "innsending_mottatt",
@@ -127,3 +126,4 @@ private val nySøknadJson = """{
   "system_read_count": 0
 }
 """.trimIndent()
+

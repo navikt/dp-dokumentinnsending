@@ -18,7 +18,9 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
     }
 
     fun handle(hendelse: EttersendingMottattHendelse) {
-        TODO()
+        handle(hendelse) { soknad ->
+            soknad.handle(hendelse)
+        }
     }
 
     private fun handle(hendelse: Hendelse, handler: (Soknad) -> Unit) {

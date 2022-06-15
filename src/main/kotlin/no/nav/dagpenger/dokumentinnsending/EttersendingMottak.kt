@@ -2,7 +2,6 @@ package no.nav.dagpenger.dokumentinnsending
 
 import mu.KotlinLogging
 import no.nav.dagpenger.dokumentinnsending.modell.EttersendingMottattHendelse
-import no.nav.dagpenger.dokumentinnsending.modell.brukerbehandlingId
 import no.nav.dagpenger.dokumentinnsending.modell.journalpostId
 import no.nav.dagpenger.dokumentinnsending.modell.mottakLogMelding
 import no.nav.dagpenger.dokumentinnsending.modell.vedlegg
