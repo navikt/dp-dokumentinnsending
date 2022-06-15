@@ -30,17 +30,18 @@ internal class SoknadMottakTest {
         assertEquals("123", actual.fodselsnummer())
         assertEquals("123kkh", actual.journalpostId())
         assertEquals("123hurra", actual.eksternSoknadId())
-        assertEquals(forventetDato, actual.datoRegistrert())
+        assertEquals(forventetDato, actual.registrertDato())
         assertEquals(0, actual.vedlegg().size)
     }
 
     @Test
     fun `håndterer ikke papirsøknader`() {
+        val hendelseSlot = slot<SoknadMottattHendelse>()
         val mockMediator = mockk<Mediator>(relaxed = true)
         SoknadMottak(testRapid, mockMediator)
         testRapid.sendTestMessage(papirsøknadJson)
         verify(exactly = 0) {
-            mockMediator.handle(any())
+            mockMediator.handle(capture(hendelseSlot))
         }
     }
 }

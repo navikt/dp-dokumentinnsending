@@ -45,14 +45,11 @@ internal class SoknadMottak(
 }
 
 private fun JsonMessage.toSoknadMottatHendelse(): SoknadMottattHendelse {
-    val brukerBehandlingId = this.brukerbehandlingId()
-    val journalpostId = this.journalpostId()
-    val datoRegistrert = this.datoRegistrert()
     return SoknadMottattHendelse(
         fodselsnummer = this["fødselsnummer"].asText(),
-        journalpostId = journalpostId,
-        datoRegistrert = datoRegistrert,
-        eksternSoknadId = brukerBehandlingId,
-        vedlegg = this.vedlegg(brukerBehandlingId, journalpostId, datoRegistrert)
+        journalpostId = this.journalpostId(),
+        registrertDato = this.datoRegistrert(),
+        eksternSoknadId = this.brukerbehandlingId(),
+        vedlegg = this.vedlegg()
     )
 }

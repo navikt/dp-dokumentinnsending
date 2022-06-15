@@ -2,6 +2,7 @@ package no.nav.dagpenger.dokumentinnsending
 
 import mu.KotlinLogging
 import no.nav.dagpenger.dokumentinnsending.db.SoknadRepository
+import no.nav.dagpenger.dokumentinnsending.modell.EttersendingMottattHendelse
 import no.nav.dagpenger.dokumentinnsending.modell.Hendelse
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
@@ -14,6 +15,10 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
         handle(hendelse) { soknad ->
             soknad.handle(hendelse)
         }
+    }
+
+    fun handle(hendelse: EttersendingMottattHendelse) {
+        TODO()
     }
 
     private fun handle(hendelse: Hendelse, handler: (Soknad) -> Unit) {
@@ -36,7 +41,7 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
                     fodselsnummer = hendelse.fodselsnummer(),
                     eksternSoknadId = hendelse.eksternSoknadId(),
                     vedlegg = hendelse.vedlegg(),
-                    registrertDato = hendelse.datoRegistrert()
+                    registrertDato = hendelse.registrertDato()
                 )
             }
             else -> {

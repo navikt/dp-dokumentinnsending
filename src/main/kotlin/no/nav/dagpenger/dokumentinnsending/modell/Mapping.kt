@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 
 internal fun JsonNode.asZonedDateTime() = this.asLocalDateTime().atZone(ZoneId.of("Europe/Oslo"))
 
@@ -17,11 +16,10 @@ internal fun JsonMessage.brukerbehandlingId(): String = this["søknadsData.bruke
 internal fun JsonMessage.mottakLogMelding(): String = "Mottok melding om ${this["type"]} for søknad med journalpostId " +
     "${this.journalpostId()} og brukerbehandlingId ${this.brukerbehandlingId()}"
 
-internal fun JsonMessage.vedlegg(
-    brukerBehandlingId: String,
-    journalpostId: String,
-    registrertDato: ZonedDateTime
-): List<Vedlegg> {
+internal fun JsonMessage.vedlegg(): List<Vedlegg> {
+    val journalpostId = this.journalpostId()
+    val brukerBehandlingId = this.brukerbehandlingId()
+    val registrertDato = this.datoRegistrert()
     return this["søknadsData.vedlegg"].map { node ->
         Vedlegg(
             eksternSoknadId = brukerBehandlingId,
