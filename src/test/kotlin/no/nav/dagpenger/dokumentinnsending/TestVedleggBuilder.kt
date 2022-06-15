@@ -1,3 +1,5 @@
+package no.nav.dagpenger.dokumentinnsending
+
 import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import java.time.ZonedDateTime

@@ -1,7 +1,6 @@
 package no.nav.dagpenger.dokumentinnsending.db
 
 import com.zaxxer.hikari.HikariDataSource
-import kotliquery.using
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.PostgreSQLContainer.POSTGRESQL_PORT
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
@@ -33,11 +32,9 @@ internal object PostgresTestHelper {
     }
 
     fun withMigratedDb(block: (ds: DataSource) -> Unit) {
-        using(dataSource) { ds ->
-            withCleanDb {
-                runMigration(ds)
-                block(ds)
-            }
+        withCleanDb { ds ->
+            runMigration(ds)
+            block(ds)
         }
     }
 

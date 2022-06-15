@@ -1,8 +1,9 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
-import lagIkkeInnsendtVedlegg
-import lagInnsendtVedlegg
-import org.junit.jupiter.api.Assertions.*
+import no.nav.dagpenger.dokumentinnsending.lagIkkeInnsendtVedlegg
+import no.nav.dagpenger.dokumentinnsending.lagInnsendtVedlegg
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 
 internal class VedleggTest {

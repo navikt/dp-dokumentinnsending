@@ -1,7 +1,7 @@
 package no.nav.dagpenger.dokumentinnsending.db
 
-import lagIkkeInnsendtVedlegg
-import lagInnsendtVedlegg
+import no.nav.dagpenger.dokumentinnsending.lagIkkeInnsendtVedlegg
+import no.nav.dagpenger.dokumentinnsending.lagInnsendtVedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime

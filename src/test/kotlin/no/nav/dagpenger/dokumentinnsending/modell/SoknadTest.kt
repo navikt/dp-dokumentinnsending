@@ -1,7 +1,7 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
-import lagIkkeInnsendtVedlegg
-import lagInnsendtVedlegg
+import no.nav.dagpenger.dokumentinnsending.lagIkkeInnsendtVedlegg
+import no.nav.dagpenger.dokumentinnsending.lagInnsendtVedlegg
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -27,10 +27,15 @@ internal class SoknadTest {
     fun testEquals() {
         val vedleggliste = listOf(lagInnsendtVedlegg(), lagInnsendtVedlegg())
         assertEquals(lagSoknad(vedlegg = vedleggliste), lagSoknad(vedlegg = vedleggliste))
-        assertNotEquals(lagSoknad(vedlegg = vedleggliste), lagSoknad(vedlegg = listOf(lagInnsendtVedlegg())))
         assertNotEquals(
-            lagSoknad(vedlegg = vedleggliste),
-            lagSoknad(vedlegg = listOf(lagInnsendtVedlegg(), lagIkkeInnsendtVedlegg()))
+            lagSoknad(
+                journalpostId = "123",
+                vedlegg = vedleggliste
+            ),
+            lagSoknad(
+                journalpostId = "345",
+                vedlegg = listOf(lagInnsendtVedlegg())
+            )
         )
     }
 }
