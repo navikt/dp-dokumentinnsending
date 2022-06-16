@@ -83,7 +83,6 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
         fun kontekst() = aktivitetslogg.kontekster.fold(mutableMapOf<String, String>()) { result, kontekst ->
             result.apply { putAll(kontekst.toSpesifikkKontekst().kontekstMap) }
         }
-
         fun aktivitetslogg() = aktivitetslogg
     }
 
