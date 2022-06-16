@@ -4,15 +4,13 @@ import no.nav.dagpenger.dokumentinnsending.db.PostgresSoknadRepository
 import no.nav.dagpenger.dokumentinnsending.db.PostgresTestHelper
 import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
-import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
-import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
+import kotlin.test.assertContentEquals
 
 internal class MediatorE2ETest {
     private val testRapid = TestRapid()
@@ -47,6 +45,12 @@ internal class MediatorE2ETest {
             val vistedOrginalSoknad = MediatorTestVistor(originalSoknad)
             require(originalSoknad != null)
             assertSoknadKomplett(originalSoknad, true)
+            assertEquals(1, originalSoknad.aktivitetslogg.aktivitetsteller())
+            assertAktivitetslogg(
+                logg = vistedOrginalSoknad.aktivitetslogg,
+                meldinger = listOf("Søknad motatt"),
+                antallInfo = 1
+            )
 
             testRapid.sendTestMessage(
                 ettersendingJson2(
@@ -57,8 +61,11 @@ internal class MediatorE2ETest {
                 )
             )
             soknadRepository.hent(eksternId).also { soknad ->
+                requireNotNull(soknad)
                 assertSoknadEquals(vistedOrginalSoknad, soknad, 2)
                 assertSoknadKomplett(soknad, false)
+                assertEquals(2, soknad.aktivitetslogg.aktivitetsteller())
+                assertAktivitetslogg(soknad.aktivitetslogg, listOf("Søknad motatt", "Ettersending motatt"), 2)
             }
 
             testRapid.sendTestMessage(
@@ -70,9 +77,26 @@ internal class MediatorE2ETest {
                 )
             )
             soknadRepository.hent(eksternId).also { soknad ->
+                requireNotNull(soknad)
                 assertSoknadEquals(vistedOrginalSoknad, soknad, 2)
                 assertSoknadKomplett(soknad, true)
+                assertEquals(3, soknad.aktivitetslogg.aktivitetsteller())
+                assertAktivitetslogg(
+                    soknad.aktivitetslogg,
+                    listOf("Søknad motatt", "Ettersending motatt", "Ettersending motatt"),
+                    3
+                )
             }
+        }
+    }
+
+    private fun assertAktivitetslogg(logg: Aktivitetslogg, meldinger: List<String>, antallInfo: Int) {
+        AktivitetsloggTestVisitor(logg).also { aktivitetslogg ->
+            assertEquals(0, aktivitetslogg.antWarnings)
+            assertEquals(0, aktivitetslogg.antErrors)
+            assertEquals(0, aktivitetslogg.antSevere)
+            assertEquals(antallInfo, aktivitetslogg.antInfo)
+            assertContentEquals(meldinger, aktivitetslogg.meldinger)
         }
     }
 
@@ -271,34 +295,3 @@ private fun ettersendingJson2(
   }
 }
 """.trimIndent()
-
-private class MediatorTestVistor(soknad: Soknad?) : SoknadVisitor {
-    lateinit var journalPostId: String
-    lateinit var fodselsnummer: String
-    lateinit var eksternSoknadId: String
-    lateinit var registrertDato: ZonedDateTime
-    var antallVedlegg: Int = 0
-
-    init {
-        require(soknad != null)
-        soknad.accept(this)
-    }
-
-    override fun visit(
-        tilstand: Soknad.Tilstand,
-        journalPostId: String,
-        fodselsnummer: String,
-        eksternSoknadId: String,
-        registrertDato: ZonedDateTime,
-        aktivitetslogg: Aktivitetslogg
-    ) {
-        this.journalPostId = journalPostId
-        this.fodselsnummer = fodselsnummer
-        this.eksternSoknadId = eksternSoknadId
-        this.registrertDato = registrertDato
-    }
-
-    override fun visitVedlegg(vedlegg: List<Vedlegg>) {
-        this.antallVedlegg = vedlegg.size
-    }
-}
