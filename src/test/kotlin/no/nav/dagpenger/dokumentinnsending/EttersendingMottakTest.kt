@@ -126,4 +126,3 @@ private val nySøknadJson = """{
   "system_read_count": 0
 }
 """.trimIndent()
-

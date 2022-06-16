@@ -47,10 +47,30 @@ internal class MediatorE2ETest {
             require(originalSoknad != null)
             assertSoknadKomplett(originalSoknad, true)
 
-            testRapid.sendTestMessage(ettersendingJson(behandlinskjedeId = eksternId, "jia66"))
+            testRapid.sendTestMessage(
+                ettersendingJson2(
+                    behandlinskjedeId = eksternId,
+                    brukerBehandlingsId = "lggfjhe",
+                    innsendingsValg1 = "LastetOpp",
+                    innsendingsValg2 = "SendesSenere"
+                )
+            )
             soknadRepository.hent(eksternId).also { soknad ->
-                assertSoknadEquals(vistedOrginalSoknad, soknad,2)
-                assertSoknadKomplett(soknad,false)
+                assertSoknadEquals(vistedOrginalSoknad, soknad, 2)
+                assertSoknadKomplett(soknad, false)
+            }
+
+            testRapid.sendTestMessage(
+                ettersendingJson2(
+                    behandlinskjedeId = eksternId,
+                    brukerBehandlingsId = "lggfjhe",
+                    innsendingsValg1 = "LastetOpp",
+                    innsendingsValg2 = "LastetOpp"
+                )
+            )
+            soknadRepository.hent(eksternId).also { soknad ->
+                assertSoknadEquals(vistedOrginalSoknad, soknad, 2)
+                assertSoknadKomplett(soknad, true)
             }
         }
     }
@@ -187,6 +207,69 @@ private fun ettersendingJson(
   }
 }
     """.trimIndent()
+
+private fun ettersendingJson2(
+    datoRegistrert: LocalDateTime = LocalDateTime.now(),
+    behandlinskjedeId: String,
+    brukerBehandlingsId: String,
+    innsendingsValg1: String = "LastetOpp",
+    innsendingsValg2: String = "SendesSenere"
+
+) = """{
+    
+  "@event_name": "innsending_mottatt",
+  "@opprettet": "${LocalDateTime.now()}",
+  "fødselsnummer": "123",
+  "journalpostId": "${(0..10000).random()}",
+  "skjemaKode": "NAV 03-102.23",
+  "tittel": "Tittel",
+  "type": "Ettersending",
+  "datoRegistrert": "$datoRegistrert",
+  "søknadsData": {
+    "behandlingskjedeId": "$behandlinskjedeId",
+    "brukerBehandlingId": "$brukerBehandlingsId",
+    "vedlegg": [
+    {
+      "navn": "SJOKKERENDE ELEKTRIKER",
+      "urls": {},
+      "aarsak": "afsd",
+      "tittel": null,
+      "filnavn": null,
+      "faktumId": 380263325,
+      "mimetype": null,
+      "soknadId": 5220529,
+      "storrelse": 0,
+      "vedleggId": 30666838,
+      "skjemaNummer": "O2",
+      "opprettetDato": 1654780179734,
+      "innsendingsvalg": "$innsendingsValg1",
+      "fillagerReferanse": "14f7abee-4eb9-43e8-9031-6ee802725479",
+      "skjemanummerTillegg": "sagtoppavarbeidsgiver",
+      "opprinneligInnsendingsvalg": null
+    },
+    {
+      "navn": "SJOKKERENDE ELEKTRIKER",
+      "urls": {},
+      "aarsak": "saf",
+      "tittel": null,
+      "filnavn": null,
+      "faktumId": 380263325,
+      "mimetype": null,
+      "soknadId": 5220529,
+      "storrelse": 0,
+      "vedleggId": 30666839,
+      "skjemaNummer": "T8",
+      "opprettetDato": 1654780179744,
+      "innsendingsvalg": "$innsendingsValg2",
+      "fillagerReferanse": "8e557fc9-4a6d-4b52-8159-bf2c94450018",
+      "skjemanummerTillegg": "sagtoppavarbeidsgiver",
+      "opprinneligInnsendingsvalg": null
+    }
+  ],
+    "skjemaNummer": "NAV12"
+  }
+}
+""".trimIndent()
 
 private class MediatorTestVistor(soknad: Soknad?) : SoknadVisitor {
     lateinit var journalPostId: String

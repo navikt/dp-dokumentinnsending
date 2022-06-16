@@ -11,7 +11,7 @@ class Soknad(
     private val fodselsnummer: String,
     private val eksternSoknadId: String,
     private val registrertDato: ZonedDateTime,
-    private val vedlegg: List<Vedlegg> = listOf()
+    private var vedlegg: List<Vedlegg> = listOf()
 
 ) : Aktivitetskontekst {
     fun accept(visitor: SoknadVisitor) {
@@ -26,6 +26,7 @@ class Soknad(
 
     fun handle(hendelse: EttersendingMottattHendelse) {
         kontekst(hendelse, "Ettersending motatt")
+        vedlegg = hendelse.vedlegg()
         tilstand.handle(this, hendelse)
     }
 
