@@ -25,4 +25,27 @@ spec:
     enabled: true
   kafka:
     pool: {{ kafka_pool }}
-
+  gcp:
+    sqlInstances:
+      - cascadingDelete: false
+        collation: nb_NO.UTF8
+        databases:
+          - envVarPrefix: DB
+            name: dokumentinnsending
+        diskAutoresize: true
+        diskSize: {{ db_size }}
+        diskType: SSD
+        highAvailability: true
+        insights:
+          enabled: true
+          queryStringLength: 4500
+          recordApplicationTags: true
+          recordClientAddress: true
+        maintenance:
+          day: 1
+          hour: 4
+        name: dp-dokumentinnsending
+        pointInTimeRecovery: true
+        retainedBackups: 14
+        tier: {{ db_tier }}
+        type: POSTGRES_14
