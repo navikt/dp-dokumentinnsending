@@ -3,8 +3,10 @@ package no.nav.dagpenger.dokumentinnsending.db
 import no.nav.dagpenger.dokumentinnsending.lagIkkeInnsendtVedlegg
 import no.nav.dagpenger.dokumentinnsending.lagInnsendtVedlegg
 import no.nav.dagpenger.dokumentinnsending.lagSoknad
+import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
+import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.VedleggVisitor
@@ -64,6 +66,34 @@ internal class PosgresSoknadRepositoryTest {
             }
         }
     }
+
+    @Test
+    fun `Aktivitets logg blir lagret`() {
+        PostgresTestHelper.withMigratedDb { ds ->
+            PostgresSoknadRepository(ds).also { repo ->
+                repo.lagre(
+                    lagSoknad(eksternSoknadId = "1", fnr = "1").also { soknad ->
+                        soknad.handle(
+                            SoknadMottattHendelse(
+                                fodselsnummer = "1",
+                                vedlegg = listOf(),
+                                registrertDato = ZonedDateTime.now(),
+                                eksternSoknadId = "1",
+                                journalpostId = "1"
+                            )
+                        )
+                    }
+                )
+
+                repo.hent("1").also {
+                    requireNotNull(it)
+                    SoknadTestVisitor(it).also { actual ->
+                        assertEquals(1, actual.aktiviteter)
+                    }
+                }
+            }
+        }
+    }
 }
 
 private fun assertSoknadEquals(expected: Soknad, actual: Soknad?) {
@@ -87,6 +117,7 @@ private class SoknadTestVisitor(soknad: Soknad) : SoknadVisitor, VedleggVisitor 
     lateinit var brukerbehandlingsId: String
     lateinit var registrertDato: ZonedDateTime
     val vedlegg = mutableListOf<VedleggTestData>()
+    var aktiviteter: Int = 0
 
     init {
         soknad.accept(visitor = this)
@@ -97,13 +128,15 @@ private class SoknadTestVisitor(soknad: Soknad) : SoknadVisitor, VedleggVisitor 
         journalPostId: String,
         fodselsnummer: String,
         eksternSoknadId: String,
-        registrertDato: ZonedDateTime
+        registrertDato: ZonedDateTime,
+        aktivitetslogg: Aktivitetslogg
     ) {
         this.tilstand = tilstand
         this.journalPostId = journalPostId
         this.fodselsnummer = fodselsnummer
         this.brukerbehandlingsId = eksternSoknadId
         this.registrertDato = registrertDato
+        this.aktiviteter = aktivitetslogg.aktivitetsteller()
     }
 
     override fun visitVedlegg(vedlegg: List<Vedlegg>) {

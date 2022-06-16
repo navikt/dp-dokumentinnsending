@@ -2,6 +2,7 @@ package no.nav.dagpenger.dokumentinnsending
 
 import no.nav.dagpenger.dokumentinnsending.db.PostgresSoknadRepository
 import no.nav.dagpenger.dokumentinnsending.db.PostgresTestHelper
+import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
@@ -288,7 +289,8 @@ private class MediatorTestVistor(soknad: Soknad?) : SoknadVisitor {
         journalPostId: String,
         fodselsnummer: String,
         eksternSoknadId: String,
-        registrertDato: ZonedDateTime
+        registrertDato: ZonedDateTime,
+        aktivitetslogg: Aktivitetslogg
     ) {
         this.journalPostId = journalPostId
         this.fodselsnummer = fodselsnummer

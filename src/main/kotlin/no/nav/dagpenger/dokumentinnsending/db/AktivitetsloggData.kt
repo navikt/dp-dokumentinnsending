@@ -21,7 +21,6 @@ data class AktivitetsloggData(
     enum class Alvorlighetsgrad {
         INFO,
         WARN,
-        BEHOV,
         ERROR,
         SEVERE
     }

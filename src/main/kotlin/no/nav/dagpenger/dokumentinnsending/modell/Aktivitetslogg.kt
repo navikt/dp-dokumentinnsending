@@ -10,6 +10,8 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
     private val aktiviteter = mutableListOf<Aktivitet>()
     private val kontekster = mutableListOf<Aktivitetskontekst>() // Doesn't need serialization
 
+    internal fun leggTil(aktivitet: Aktivitet) = this.aktiviteter.add(aktivitet)
+
     internal fun accept(visitor: AktivitetsloggVisitor) {
         visitor.preVisitAktivitetslogg(this)
         aktiviteter.forEach { it.accept(visitor) }
@@ -83,6 +85,7 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
         fun kontekst() = aktivitetslogg.kontekster.fold(mutableMapOf<String, String>()) { result, kontekst ->
             result.apply { putAll(kontekst.toSpesifikkKontekst().kontekstMap) }
         }
+
         fun aktivitetslogg() = aktivitetslogg
     }
 

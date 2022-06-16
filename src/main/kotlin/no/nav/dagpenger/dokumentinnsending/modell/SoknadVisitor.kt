@@ -3,7 +3,16 @@ package no.nav.dagpenger.dokumentinnsending.modell
 import java.time.ZonedDateTime
 
 interface SoknadVisitor {
-    fun visit(tilstand: Soknad.Tilstand, journalPostId: String, fodselsnummer: String, eksternSoknadId: String, registrertDato: ZonedDateTime) {}
+    fun visit(
+        tilstand: Soknad.Tilstand,
+        journalPostId: String,
+        fodselsnummer: String,
+        eksternSoknadId: String,
+        registrertDato: ZonedDateTime,
+        aktivitetslogg: Aktivitetslogg
+    ) {
+    }
+
     fun visitVedlegg(vedlegg: List<Vedlegg>) {}
 }
 
@@ -15,5 +24,6 @@ interface VedleggVisitor {
         navn: String,
         skjemakode: String,
         registrertDato: ZonedDateTime
-    ) {}
+    ) {
+    }
 }

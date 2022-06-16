@@ -109,7 +109,6 @@ internal class AktivitetsloggTest {
         }
     }
 
-
     private fun assertInfo(message: String, aktivitetslogg: Aktivitetslogg = this.aktivitetslogg) {
         var visitorCalled = false
         aktivitetslogg.accept(

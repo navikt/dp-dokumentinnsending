@@ -11,12 +11,13 @@ class Soknad(
     private val fodselsnummer: String,
     private val eksternSoknadId: String,
     private val registrertDato: ZonedDateTime,
-    private var vedlegg: List<Vedlegg> = listOf()
+    private var vedlegg: List<Vedlegg> = listOf(),
+    internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 
 ) : Aktivitetskontekst {
     fun accept(visitor: SoknadVisitor) {
         visitor.visitVedlegg(vedlegg)
-        visitor.visit(tilstand, journalpostId, fodselsnummer, eksternSoknadId, registrertDato)
+        visitor.visit(tilstand, journalpostId, fodselsnummer, eksternSoknadId, registrertDato, aktivitetslogg)
     }
 
     fun handle(hendelse: SoknadMottattHendelse) {
@@ -29,8 +30,6 @@ class Soknad(
         vedlegg = hendelse.vedlegg()
         tilstand.handle(this, hendelse)
     }
-
-    val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 
     private fun kontekst(hendelse: Hendelse, melding: String) {
         hendelse.kontekst(this)

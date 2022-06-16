@@ -4,12 +4,18 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.dagpenger.dokumentinnsending.Configuration
+import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
+import no.nav.dagpenger.dokumentinnsending.modell.AktivitetsloggVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.VedleggVisitor
+import no.nav.dagpenger.dokumentinnsending.serder.AktivitetsloggJsonBuilder
+import no.nav.dagpenger.dokumentinnsending.serder.JsonMapper
+import no.nav.dagpenger.dokumentinnsending.serder.konverterTilAktivitetslogg
+import org.postgresql.util.PGobject
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.sql.DataSource
@@ -19,7 +25,7 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
         val visitor = SoknadVisitor(soknad)
         using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
-                val internId = tx.run(
+                val internId: Long = tx.run(
                     queryOf(
                         //language=PostgreSQL
                         """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,ekstern_id,tilstand, registrert_dato) 
@@ -37,7 +43,25 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
 
                         )
                     ).map { row -> row.long("id") }.asSingle
-                )!!
+                ) ?: throw RuntimeException("todo: Bedre eks") // todo Egen exceptionklasse?
+
+                //language=PostgreSQL
+                tx.run(
+                    queryOf(
+                        //language=PostgreSQL
+                        """
+                           INSERT INTO aktivitetslogg_v1(id, data) VALUES (:id, :data)
+                           ON CONFLICT(id) DO UPDATE SET data =  :data 
+                        """.trimIndent(),
+                        mapOf(
+                            "id" to internId,
+                            "data" to PGobject().apply {
+                                type = "jsonb"
+                                value = AktivitetsloggJsonBuilder(visitor.aktivitetslogg).toJson()
+                            }
+                        )
+                    ).asUpdate
+                )
 
                 tx.run(
                     queryOf(
@@ -62,7 +86,20 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
         return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
-                    "SELECT * FROM soknad_v1 WHERE ekstern_id=:eid",
+                    //language=PostgreSQL
+                    """ SELECT 
+                            soknad.id as id,
+                            soknad.tilstand as tilstand,
+                            soknad.journalpost_id as  journalpost_id,
+                            soknad.fodselnummer as fodselnummer,
+                            soknad.ekstern_id as ekstern_id,
+                            soknad.registrert_dato as registrert_dato,
+                            logg.data as logg
+                        FROM soknad_v1 AS soknad 
+                        LEFT JOIN aktivitetslogg_v1 as logg
+                        ON logg.id  = soknad.id
+                        WHERE soknad.ekstern_id=:eid
+                       """.trimMargin(),
                     mapOf(
                         "eid" to eksternSoknadId
                     )
@@ -73,8 +110,13 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                         journalPostId = row.long("journalpost_id").toString(),
                         fnr = row.string("fodselnummer"),
                         eksternSoknadId = row.string("ekstern_id"),
-                        registrertDato = row.zonedDateTime("registrert_dato")
-
+                        registrertDato = row.zonedDateTime("registrert_dato"),
+                        aktivitetsloggData = row.binaryStream("logg").use {
+                            JsonMapper.jacksonJsonAdapter.readValue(
+                                it,
+                                AktivitetsloggData::class.java
+                            )
+                        }
                     )
                 }.asSingle
             )?.let { soknadData ->
@@ -99,7 +141,8 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                     fodselsnummer = soknadData.fnr,
                     eksternSoknadId = soknadData.eksternSoknadId,
                     vedlegg = vedlegg,
-                    registrertDato = soknadData.registrertDato
+                    registrertDato = soknadData.registrertDato,
+                    aktivitetslogg = soknadData.aktivitetsloggData.let(::konverterTilAktivitetslogg)
                 )
             }
         }
@@ -120,16 +163,21 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
 }
 
 private class SoknadVisitor(soknad: Soknad) :
-    SoknadVisitor, VedleggVisitor {
+    SoknadVisitor, VedleggVisitor, AktivitetsloggVisitor {
     lateinit var tilstand: String
     lateinit var journalpostId: String
     lateinit var fodselsnummer: String
     lateinit var eksternSoknadId: String
     lateinit var registrertDato: ZonedDateTime
     val vedlegg = mutableListOf<VedleggData>()
+    lateinit var aktivitetslogg: Aktivitetslogg
 
     init {
         soknad.accept(this)
+    }
+
+    override fun preVisitAktivitetslogg(aktivitetslogg: Aktivitetslogg) {
+        this.aktivitetslogg = aktivitetslogg
     }
 
     override fun visit(
@@ -137,13 +185,15 @@ private class SoknadVisitor(soknad: Soknad) :
         journalPostId: String,
         fodselsnummer: String,
         eksternSoknadId: String,
-        registrertDato: ZonedDateTime
+        registrertDato: ZonedDateTime,
+        aktivitetslogg: Aktivitetslogg
     ) {
         this.tilstand = tilstand.type.name
         this.journalpostId = journalPostId
         this.fodselsnummer = fodselsnummer
         this.eksternSoknadId = eksternSoknadId
         this.registrertDato = registrertDato
+        this.aktivitetslogg = aktivitetslogg
     }
 
     override fun visitVedlegg(vedlegg: List<Vedlegg>) {
@@ -188,7 +238,8 @@ private data class SoknadData(
     val journalPostId: String,
     val fnr: String,
     val eksternSoknadId: String,
-    val registrertDato: ZonedDateTime
+    val registrertDato: ZonedDateTime,
+    val aktivitetsloggData: AktivitetsloggData
 ) {
     fun tilstandType(): Soknad.Tilstand = when (SoknadTilstandType.valueOf(tilstand)) {
         SoknadTilstandType.MOTTATT -> Soknad.Mottatt
