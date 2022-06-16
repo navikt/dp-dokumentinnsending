@@ -43,7 +43,7 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
 
                         )
                     ).map { row -> row.long("id") }.asSingle
-                ) ?: throw RuntimeException("todo: Bedre eks") // todo Egen exceptionklasse?
+                ) ?: throw RuntimeException("Kunne ikke lagre søknad med eksternId: ${visitor.eksternSoknadId}")
 
                 //language=PostgreSQL
                 tx.run(

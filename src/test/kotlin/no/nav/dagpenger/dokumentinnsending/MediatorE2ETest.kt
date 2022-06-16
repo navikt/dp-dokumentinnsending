@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDateTime
 import kotlin.test.assertContentEquals
 
@@ -27,6 +28,26 @@ internal class MediatorE2ETest {
             assertNotNull(soknad)
             assertFalse(soknad!!.erKomplett())
             // hva vil vi skal skje om det kommer en NySøknad melding som er duplikat?Skjer det?
+        }
+    }
+
+    @Test
+    fun `Dropper ettersendinger med ukjent søknad for eksternId`() {
+        PostgresTestHelper.withMigratedDb {
+            val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
+            val mediator = Mediator(soknadRepository = soknadRepository)
+            SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
+            EttersendingMottak(rapidsConnection = testRapid, mediator = mediator)
+            assertDoesNotThrow {
+                testRapid.sendTestMessage(
+                    ettersendingJson2(
+                        behandlinskjedeId = "19687",
+                        brukerBehandlingsId = "lggfjhe",
+                        innsendingsValg1 = "LastetOpp",
+                        innsendingsValg2 = "SendesSenere"
+                    )
+                )
+            }
         }
     }
 

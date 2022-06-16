@@ -18,8 +18,12 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
     }
 
     fun handle(hendelse: EttersendingMottattHendelse) {
-        handle(hendelse) { soknad ->
-            soknad.handle(hendelse)
+        try {
+            handle(hendelse) { soknad ->
+                soknad.handle(hendelse)
+            }
+        } catch (error: UkjentSoknadExcpetion) {
+            sikkerlogg.warn(error.message)
         }
     }
 
@@ -48,7 +52,7 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
             }
             else -> {
                 soknadRepository.hent(hendelse.eksternSoknadId())
-                    ?: throw IllegalStateException(
+                    ?: throw UkjentSoknadExcpetion(
                         "Fant ikke søknad med journalpostId ${hendelse.journalpostId()} og brukerbehandlingsId ${hendelse.eksternSoknadId()} på ${hendelse::class.simpleName}"
                     )
             }
@@ -62,3 +66,5 @@ internal class Mediator(private val soknadRepository: SoknadRepository) {
         sikkerlogg.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
     }
 }
+
+internal class UkjentSoknadExcpetion(melding: String) : IllegalArgumentException(melding)
