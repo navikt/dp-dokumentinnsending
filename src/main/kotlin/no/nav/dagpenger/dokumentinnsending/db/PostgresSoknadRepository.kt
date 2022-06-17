@@ -28,8 +28,8 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                 val internId: Long = tx.run(
                     queryOf(
                         //language=PostgreSQL
-                        """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,ekstern_id,tilstand, registrert_dato) 
-                            VALUES(:jpid,:fnr,:eid,:tilstand,:regdato) 
+                        """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,ekstern_id,tilstand, registrert_dato, sist_endret) 
+                            VALUES(:jpid,:fnr,:eid,:tilstand,:regdato,:sistEndret) 
                             ON CONFLICT(ekstern_id) DO UPDATE SET sist_endret = :sistEndret, tilstand = :tilstand 
                             RETURNING id 
                         """.trimIndent(),
