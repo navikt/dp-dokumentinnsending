@@ -3,6 +3,7 @@ package no.nav.dagpenger.dokumentinnsending
 import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.AktivitetsloggVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
+import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.SpesifikkKontekst
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
@@ -13,8 +14,8 @@ internal class MediatorTestVistor(soknad: Soknad?) : SoknadVisitor {
     lateinit var fodselsnummer: String
     lateinit var eksternSoknadId: String
     lateinit var registrertDato: ZonedDateTime
+    lateinit var tilstandType: SoknadTilstandType
     lateinit var aktivitetslogg: Aktivitetslogg
-
     var antallVedlegg: Int = 0
 
     init {
@@ -35,6 +36,7 @@ internal class MediatorTestVistor(soknad: Soknad?) : SoknadVisitor {
         this.eksternSoknadId = eksternSoknadId
         this.registrertDato = registrertDato
         this.aktivitetslogg = aktivitetslogg
+        this.tilstandType = tilstand.type
     }
 
     override fun visitVedlegg(vedlegg: List<Vedlegg>) {

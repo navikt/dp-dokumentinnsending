@@ -4,10 +4,9 @@ import no.nav.dagpenger.dokumentinnsending.db.PostgresSoknadRepository
 import no.nav.dagpenger.dokumentinnsending.db.PostgresTestHelper
 import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
+import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDateTime
@@ -17,17 +16,16 @@ internal class MediatorE2ETest {
     private val testRapid = TestRapid()
 
     @Test
-    fun `lagrer søknad med manglende vedlegg`() {
+    fun `lagrer søknad uten vedlegg som skal lastes opp senere og lagrer ettersendinger`() {
         PostgresTestHelper.withMigratedDb {
             val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
             val mediator = Mediator(soknadRepository = soknadRepository)
             SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
 
-            testRapid.sendTestMessage(søknadJson("1"))
+            testRapid.sendTestMessage(søknadJson(brukerBehandlingsId = "1", innsendingsValg = "LastetOpp"))
             val soknad = soknadRepository.hent("1")
-            assertNotNull(soknad)
-            assertFalse(soknad!!.erKomplett())
-            // hva vil vi skal skje om det kommer en NySøknad melding som er duplikat?Skjer det?
+            requireNotNull(soknad)
+            assertEquals(SoknadTilstandType.KOMPLETT, MediatorTestVistor(soknad).tilstandType)
         }
     }
 
@@ -52,7 +50,7 @@ internal class MediatorE2ETest {
     }
 
     @Test
-    fun `lagrer søknad uten manglende vedlegg og lagrer ettersendinger`() {
+    fun `lagrer søknad med vedlegg som skal lastes opp senere og lagrer ettersendinger`() {
         val eksternId = "haksj1"
         PostgresTestHelper.withMigratedDb {
             val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
@@ -61,11 +59,11 @@ internal class MediatorE2ETest {
             SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
             EttersendingMottak(rapidsConnection = testRapid, mediator = mediator)
 
-            testRapid.sendTestMessage(søknadJson(brukerBehandlingsId = eksternId, innsendingsValg = "LastetOpp"))
+            testRapid.sendTestMessage(søknadJson(brukerBehandlingsId = eksternId, innsendingsValg = "SendesSenere"))
             val originalSoknad = soknadRepository.hent(eksternId)
             val vistedOrginalSoknad = MediatorTestVistor(originalSoknad)
             require(originalSoknad != null)
-            assertSoknadKomplett(originalSoknad, true)
+            assertEquals(SoknadTilstandType.AVVENTER_VEDLEGG, vistedOrginalSoknad.tilstandType)
             assertEquals(1, originalSoknad.aktivitetslogg.aktivitetsteller())
             assertAktivitetslogg(
                 logg = vistedOrginalSoknad.aktivitetslogg,
@@ -84,7 +82,7 @@ internal class MediatorE2ETest {
             soknadRepository.hent(eksternId).also { soknad ->
                 requireNotNull(soknad)
                 assertSoknadEquals(vistedOrginalSoknad, soknad, 2)
-                assertSoknadKomplett(soknad, false)
+                assertEquals(SoknadTilstandType.AVVENTER_VEDLEGG, MediatorTestVistor(soknad).tilstandType)
                 assertEquals(2, soknad.aktivitetslogg.aktivitetsteller())
                 assertAktivitetslogg(soknad.aktivitetslogg, listOf("Søknad motatt", "Ettersending motatt"), 2)
             }
@@ -100,7 +98,7 @@ internal class MediatorE2ETest {
             soknadRepository.hent(eksternId).also { soknad ->
                 requireNotNull(soknad)
                 assertSoknadEquals(vistedOrginalSoknad, soknad, 2)
-                assertSoknadKomplett(soknad, true)
+                assertEquals(SoknadTilstandType.KOMPLETT, MediatorTestVistor(soknad).tilstandType)
                 assertEquals(3, soknad.aktivitetslogg.aktivitetsteller())
                 assertAktivitetslogg(
                     soknad.aktivitetslogg,
@@ -119,11 +117,6 @@ internal class MediatorE2ETest {
             assertEquals(antallInfo, aktivitetslogg.antInfo)
             assertContentEquals(meldinger, aktivitetslogg.meldinger)
         }
-    }
-
-    private fun assertSoknadKomplett(soknad: Soknad?, komplett: Boolean) {
-        require(soknad != null)
-        assertEquals(komplett, soknad.erKomplett())
     }
 
     private fun assertSoknadEquals(expectedVisitor: MediatorTestVistor, actual: Soknad?, expectedAntallVedlegg: Int) {

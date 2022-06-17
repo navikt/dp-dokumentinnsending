@@ -44,7 +44,7 @@ class Soknad(
         )
     )
 
-    fun erKomplett(): Boolean = !vedlegg.any { it.status() == InnsendingStatus.IKKE_INNSENDT }
+    private fun erKomplett(): Boolean = !vedlegg.any { it.status() == InnsendingStatus.IKKE_INNSENDT }
 
     // Gang of four State pattern
     interface Tilstand : Aktivitetskontekst {

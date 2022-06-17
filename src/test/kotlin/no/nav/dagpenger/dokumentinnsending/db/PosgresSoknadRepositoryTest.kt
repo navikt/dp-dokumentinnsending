@@ -7,6 +7,7 @@ import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
+import no.nav.dagpenger.dokumentinnsending.modell.SoknadTilstandType
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadVisitor
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import no.nav.dagpenger.dokumentinnsending.modell.VedleggVisitor
@@ -14,9 +15,7 @@ import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 internal class PosgresSoknadRepositoryTest {
     @Test
@@ -32,12 +31,12 @@ internal class PosgresSoknadRepositoryTest {
 
     @Test
     fun `Kan oppdatere søknad`() {
-        val soknadBrukerbehandlingId = "123"
+        val eksternId = "123"
         PostgresTestHelper.withMigratedDb { ds ->
             val repo = PostgresSoknadRepository(ds).also {
                 it.lagre(
                     lagSoknad(
-                        eksternSoknadId = soknadBrukerbehandlingId,
+                        eksternSoknadId = eksternId,
                         vedlegg = listOf(
                             lagInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
                             lagIkkeInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
@@ -46,11 +45,14 @@ internal class PosgresSoknadRepositoryTest {
                 )
             }
 
-            assertFalse(repo.hent(soknadBrukerbehandlingId)?.erKomplett() ?: false)
+            val motattSoknad = repo.hent(eksternId)
+            requireNotNull(motattSoknad)
+            assertEquals(SoknadTilstandType.MOTTATT, SoknadTestVisitor(motattSoknad).tilstand.type)
 
             repo.lagre(
                 lagSoknad(
-                    eksternSoknadId = soknadBrukerbehandlingId,
+                    eksternSoknadId = eksternId,
+                    tilstand = Soknad.Komplett,
                     vedlegg = listOf(
                         lagInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
                         lagInnsendtVedlegg(eksternSoknadId = "123", jpId = "468"),
@@ -58,11 +60,11 @@ internal class PosgresSoknadRepositoryTest {
                     )
                 )
             )
-            val actualSoknad = repo.hent("123")
-            assertNotNull(actualSoknad)
-            assertTrue(actualSoknad.erKomplett())
-            SoknadTestVisitor(actualSoknad).also {
+            val oppdatertSoknad = repo.hent("123")
+            assertNotNull(oppdatertSoknad)
+            SoknadTestVisitor(oppdatertSoknad).also {
                 assertEquals(3, it.vedlegg.size)
+                assertEquals(SoknadTilstandType.KOMPLETT, it.tilstand.type)
             }
         }
     }

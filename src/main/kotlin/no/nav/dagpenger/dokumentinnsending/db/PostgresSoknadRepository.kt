@@ -30,7 +30,7 @@ class PostgresSoknadRepository(private val dataSource: DataSource = Configuratio
                         //language=PostgreSQL
                         """ INSERT INTO soknad_v1(journalpost_id,fodselnummer,ekstern_id,tilstand, registrert_dato) 
                             VALUES(:jpid,:fnr,:eid,:tilstand,:regdato) 
-                            ON CONFLICT(ekstern_id) DO UPDATE SET sist_endret = :sistEndret 
+                            ON CONFLICT(ekstern_id) DO UPDATE SET sist_endret = :sistEndret, tilstand = :tilstand 
                             RETURNING id 
                         """.trimIndent(),
                         mapOf(
