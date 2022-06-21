@@ -11,12 +11,12 @@ import org.slf4j.MDC
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class Mediator(private val soknadRepository: SoknadRepository) {
+
     fun handle(hendelse: SoknadMottattHendelse) {
         handle(hendelse) { soknad ->
             soknad.handle(hendelse)
         }
     }
-
     fun handle(hendelse: EttersendingMottattHendelse) {
         try {
             handle(hendelse) { soknad ->

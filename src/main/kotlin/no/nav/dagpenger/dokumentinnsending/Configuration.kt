@@ -21,6 +21,10 @@ internal object Configuration {
             "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
             "KAFKA_EXTRA_TOPIC" to "teamdagpenger.journalforing.v1",
             "KAFKA_RESET_POLICY" to "latest",
+            "AZURE_APP_WELL_KNOWN_URL" to "http://localhost:4443",
+            "AZURE_APP_CLIENT_ID" to "azureClientId",
+            "TOKEN_X_WELL_KNOWN_URL" to "http://localhost:4443",
+            "TOKEN_X_CLIENT_ID" to "tokenxClientId"
         )
     )
 
@@ -29,6 +33,18 @@ internal object Configuration {
 
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
+    }
+
+    object AzureAd {
+        const val name = "azureAd"
+        val audience = properties[Key("AZURE_APP_CLIENT_ID", stringType)]
+        val wellKnownUrl = properties[Key("AZURE_APP_WELL_KNOWN_URL", stringType)]
+    }
+
+    object TokenX {
+        const val name = "tokenX"
+        val audience = properties[Key("TOKEN_X_CLIENT_ID", stringType)]
+        val wellKnownUrl = properties[Key("TOKEN_X_WELL_KNOWN_URL", stringType)]
     }
 
     val dataSource by lazy {
