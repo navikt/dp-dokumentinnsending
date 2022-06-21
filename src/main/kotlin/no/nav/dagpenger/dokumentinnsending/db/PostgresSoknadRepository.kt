@@ -20,7 +20,72 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.sql.DataSource
 
-class PostgresSoknadRepository(private val dataSource: DataSource = Configuration.dataSource) : SoknadRepository {
+internal class PostgresSoknadRepository(private val dataSource: DataSource = Configuration.dataSource) :
+    SoknadRepository {
+    override fun hentSoknaderForPerson(fnr: String): List<SoknadData> {
+        val using = using(sessionOf(dataSource)) { session ->
+            session.run(
+                queryOf(
+                    //language=PostgreSQL
+                    """ SELECT 
+                            soknad.id as id,
+                            soknad.tilstand as tilstand,
+                            soknad.journalpost_id as  journalpost_id,
+                            soknad.fodselnummer as fodselnummer,
+                            soknad.ekstern_id as ekstern_id,
+                            soknad.registrert_dato as registrert_dato,
+                            logg.data as logg,
+                            vedlegg.navn as vedlegg_navn,
+                            vedlegg.skjemakode as vedlegg_skjemakode,
+                            vedlegg.journalpost_id as vedlegg_journalpostId,
+                            vedlegg.status as vedlegg_status,
+                            vedlegg.registrert_dato as vedlegg_registrert_dato
+                        FROM soknad_v1 as soknad 
+                        LEFT JOIN aktivitetslogg_v1 as logg on soknad.id = logg.id
+                        LEFT JOIN  vedlegg_v1 as vedlegg  on soknad.id = vedlegg.soknad_id
+                        WHERE soknad.fodselnummer=:fnr
+                       """.trimMargin(),
+                    mapOf(
+                        "fnr" to fnr
+                    )
+                ).map { row ->
+                    SoknadData(
+                        internId = row.long("id"),
+                        tilstand = row.string("tilstand"),
+                        journalPostId = row.long("journalpost_id").toString(),
+                        fnr = row.string("fodselnummer"),
+                        eksternSoknadId = row.string("ekstern_id"),
+                        registrertDato = row.zonedDateTime("registrert_dato"),
+                        aktivitetsloggData = row.binaryStream("logg").use {
+                            JsonMapper.jacksonJsonAdapter.readValue(
+                                it,
+                                AktivitetsloggData::class.java
+                            )
+                        },
+                        vedleggData = row.stringOrNull("vedlegg_navn")?.let { navn ->
+                            mutableListOf(
+                                VedleggData(
+                                    status = row.string("vedlegg_status"),
+                                    eksternSoknadId = row.string("ekstern_id"),
+                                    journalPostId = row.string("vedlegg_journalpostId"),
+                                    registrertDato = row.zonedDateTime("vedlegg_registrert_dato"),
+                                    navn = navn,
+                                    skjemakode = row.string("vedlegg_skjemakode")
+                                )
+                            )
+                        } ?: mutableListOf<VedleggData>()
+                    )
+                }.asList
+            )
+        }
+        return using.groupingBy { soknadData -> soknadData.eksternSoknadId }
+            .reduce { _, accumulator, element ->
+                accumulator.also {
+                    it.vedleggData.addAll(element.vedleggData)
+                }
+            }.values.toList()
+    }
+
     override fun lagre(soknad: Soknad) {
         val visitor = SoknadVisitor(soknad)
         using(sessionOf(dataSource)) { session ->
@@ -223,7 +288,7 @@ private class SoknadVisitor(soknad: Soknad) :
     }
 }
 
-private data class VedleggData(
+internal data class VedleggData(
     val status: String,
     val eksternSoknadId: String,
     val journalPostId: String,
@@ -232,14 +297,15 @@ private data class VedleggData(
     val skjemakode: String
 )
 
-private data class SoknadData(
+internal data class SoknadData(
     val internId: Long,
     val tilstand: String,
     val journalPostId: String,
     val fnr: String,
     val eksternSoknadId: String,
     val registrertDato: ZonedDateTime,
-    val aktivitetsloggData: AktivitetsloggData
+    val aktivitetsloggData: AktivitetsloggData,
+    val vedleggData: MutableList<VedleggData> = mutableListOf()
 ) {
     fun tilstandType(): Soknad.Tilstand = when (SoknadTilstandType.valueOf(tilstand)) {
         SoknadTilstandType.MOTTATT -> Soknad.Mottatt

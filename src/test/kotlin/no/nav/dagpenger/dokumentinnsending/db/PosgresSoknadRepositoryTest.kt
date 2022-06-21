@@ -18,6 +18,19 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 internal class PosgresSoknadRepositoryTest {
+
+    @Test
+    fun `Hent soknad for bruker`() {
+        PostgresTestHelper.withMigratedDb { ds ->
+            val repo = PostgresSoknadRepository(ds)
+            repo.lagre(lagSoknad(fnr = "123", vedlegg = emptyList()))
+
+            repo.hentSoknaderForPerson("123").let {
+                assertEquals(1, it.size)
+            }
+        }
+    }
+
     @Test
     fun `lagrer og henter søknad`() {
         val brukerbehandlingId = "123"
