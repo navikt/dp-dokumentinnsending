@@ -4,15 +4,17 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.dagpenger.dokumentinnsending.SoknadMedVedlegg
 import no.nav.dagpenger.dokumentinnsending.api.TestApplication.autentisert
 import no.nav.dagpenger.dokumentinnsending.db.PostgresSoknadRepository
 import no.nav.dagpenger.dokumentinnsending.db.PostgresTestHelper
 import no.nav.dagpenger.dokumentinnsending.db.SoknadRepository
-import no.nav.dagpenger.dokumentinnsending.lagSoknader
+import no.nav.dagpenger.dokumentinnsending.lagInnsendtVedlegg
+import no.nav.dagpenger.dokumentinnsending.lagSoknad
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import javax.sql.DataSource
 import kotlin.test.assertEquals
 
@@ -46,7 +48,7 @@ internal class VedleggApiTest {
     }
 
     @Test
-    fun `skal kunne list søknader som ikke er eldre enn 12 uker for en person`() {
+    fun `skal kunne liste søknader som ikke er eldre enn 12 uker for en person`() {
         val now = ZonedDateTime.now()
         PostgresTestHelper.withMigratedDb { ds ->
             ds.leggInnSoknad(TestApplication.defaultDummyFodselsnummer, now)
@@ -58,8 +60,9 @@ internal class VedleggApiTest {
                 client.get("v1/soknader") {
                     autentisert()
                 }.let { httpResponse ->
+                    val tadda = httpResponse.bodyAsText()
                     assertEquals(200, httpResponse.status.value)
-                    JSONAssert.assertEquals(expectedSoknadResponsJson(now), httpResponse.bodyAsText(), true)
+                    JSONAssert.assertEquals(expectedSoknadResponsJson(now), tadda, false)
                 }
             }
         }
@@ -68,49 +71,50 @@ internal class VedleggApiTest {
     private fun expectedSoknadResponsJson(registrertDato: ZonedDateTime): String {
         //language=Json
         return """[
+  {
+    "registrertDato": "${registrertDato.toJsonApiFormat()}",
+    "innsendingsId": 1,
+    "vedlegg": [
       {
-        "registrertDato": "$registrertDato"
-        "innsendingsId": 1,
-        "vedlegg": [
-          {
-            "navn": "1",
-            "status": "INNSENDT"
-          },
-          {
-            "navn": "2",
-            "status": "INNSENDT"
-          },
-          {
-            "navn": "3",
-            "status": "INNSENDT"
-          }
-        ]
+        "navn": "vedlegg1",
+        "status": "INNSENDT"
       },
       {
-        "registrertDato": "$registrertDato"
-        "innsendingsId": 2,
-        "vedlegg": [
-          {
-            "navn": "1",
-            "status": "INNSENDT"
-          },
-          {
-            "navn": "2",
-            "status": "INNSENDT"
-          },
-          {
-            "navn": "3",
-            "status": "INNSENDT"
-          }
-        ]
+        "navn": "vedlegg2",
+        "status": "INNSENDT"
       }
     ]
+  },
+  {
+    "registrertDato": "${registrertDato.toJsonApiFormat()}",
+    "innsendingsId": 2,
+    "vedlegg": []
+  }
+]
         """.trimIndent()
     }
 
     private fun DataSource.leggInnSoknad(fnr: String, registrertDato: ZonedDateTime) {
         PostgresSoknadRepository(this).let { repo ->
-            lagSoknader(fnr, SoknadMedVedlegg(1, 3), SoknadMedVedlegg(2, 3)).forEach { repo.lagre(it) }
+            lagSoknad(
+                eksternSoknadId = "tadda77",
+                journalpostId = "1",
+                fnr = fnr,
+                registrertDato = registrertDato,
+                vedlegg = listOf(
+                    lagInnsendtVedlegg(datoRegistrert = registrertDato, navn = "vedlegg1"),
+                    lagInnsendtVedlegg(datoRegistrert = registrertDato, navn = "vedlegg2")
+                )
+            ).also { repo.lagre(it) }
+            lagSoknad(
+                eksternSoknadId = "tadda88",
+                journalpostId = "2",
+                fnr = fnr,
+                registrertDato = registrertDato,
+                vedlegg = emptyList()
+            ).also { repo.lagre(it) }
         }
     }
 }
+
+private fun ZonedDateTime.toJsonApiFormat() = this.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
