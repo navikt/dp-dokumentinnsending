@@ -1,8 +1,10 @@
 package no.nav.dagpenger.dokumentinnsending.db
 
+import no.nav.dagpenger.dokumentinnsending.SoknadMedVedlegg
 import no.nav.dagpenger.dokumentinnsending.lagIkkeInnsendtVedlegg
 import no.nav.dagpenger.dokumentinnsending.lagInnsendtVedlegg
 import no.nav.dagpenger.dokumentinnsending.lagSoknad
+import no.nav.dagpenger.dokumentinnsending.lagSoknader
 import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.InnsendingStatus
 import no.nav.dagpenger.dokumentinnsending.modell.Soknad
@@ -23,10 +25,29 @@ internal class PosgresSoknadRepositoryTest {
     fun `Hent soknad for bruker`() {
         PostgresTestHelper.withMigratedDb { ds ->
             val repo = PostgresSoknadRepository(ds)
-            repo.lagre(lagSoknad(fnr = "123", vedlegg = emptyList()))
 
-            repo.hentSoknaderForPerson("123").let {
-                assertEquals(1, it.size)
+            lagSoknader("1", SoknadMedVedlegg(1, 0)).forEach { repo.lagre(it) }
+            assertEquals(1, repo.hentSoknaderForPerson("1").size)
+
+            lagSoknader("2", SoknadMedVedlegg(2, 5)).forEach { repo.lagre(it) }
+            repo.hentSoknaderForPerson("2").let {
+                require(it.size == 1)
+                assertEquals(5, it.first().vedleggData.size)
+            }
+
+            lagSoknader(
+                fnr = "3",
+                SoknadMedVedlegg(11, 2),
+                SoknadMedVedlegg(12, 4),
+                SoknadMedVedlegg(13, 1),
+            ).forEach { repo.lagre(it) }
+            repo.hentSoknaderForPerson("3").let { soknader ->
+                assertEquals(3, soknader.size)
+                soknader.sortedByDescending { it.vedleggData.size }.let { sortedSoknader ->
+                    assertEquals(4, sortedSoknader[0].vedleggData.size)
+                    assertEquals(2, sortedSoknader[1].vedleggData.size)
+                    assertEquals(1, sortedSoknader[2].vedleggData.size)
+                }
             }
         }
     }

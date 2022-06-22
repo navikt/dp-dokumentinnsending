@@ -23,7 +23,7 @@ import javax.sql.DataSource
 internal class PostgresSoknadRepository(private val dataSource: DataSource = Configuration.dataSource) :
     SoknadRepository {
     override fun hentSoknaderForPerson(fnr: String): List<SoknadData> {
-        val using = using(sessionOf(dataSource)) { session ->
+        return using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
                     //language=PostgreSQL
@@ -73,12 +73,11 @@ internal class PostgresSoknadRepository(private val dataSource: DataSource = Con
                                     skjemakode = row.string("vedlegg_skjemakode")
                                 )
                             )
-                        } ?: mutableListOf<VedleggData>()
+                        } ?: mutableListOf()
                     )
                 }.asList
             )
-        }
-        return using.groupingBy { soknadData -> soknadData.eksternSoknadId }
+        }.groupingBy { soknadData -> soknadData.eksternSoknadId }
             .reduce { _, accumulator, element ->
                 accumulator.also {
                     it.vedleggData.addAll(element.vedleggData)

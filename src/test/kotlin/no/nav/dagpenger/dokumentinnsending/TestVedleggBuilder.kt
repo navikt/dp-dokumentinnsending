@@ -5,6 +5,24 @@ import no.nav.dagpenger.dokumentinnsending.modell.Soknad
 import no.nav.dagpenger.dokumentinnsending.modell.Vedlegg
 import java.time.ZonedDateTime
 
+internal data class SoknadMedVedlegg(
+    val soknadId: Int,
+    val antallVedlegg: Int
+)
+
+internal fun lagSoknader(fnr: String, vararg soknader: SoknadMedVedlegg): List<Soknad> {
+    return soknader.map { soknadMedVedlegg ->
+        lagSoknad(
+            fnr = fnr,
+            eksternSoknadId = soknadMedVedlegg.soknadId.toString(),
+            journalpostId = soknadMedVedlegg.soknadId.toString(),
+            vedlegg = (1..soknadMedVedlegg.antallVedlegg).map { i ->
+                lagInnsendtVedlegg(navn = "$i")
+            }
+        )
+    }
+}
+
 internal fun lagSoknad(
     tilstand: Soknad.Tilstand = Soknad.Mottatt,
     journalpostId: String = "12345",
