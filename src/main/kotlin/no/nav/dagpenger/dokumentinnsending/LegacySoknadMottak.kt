@@ -12,7 +12,13 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
-internal class SoknadMottak(
+/*
+* Tar imot meldinger fra dp-mottak om journalføringshendelser for gamle søknader. For ny løsning på følgende felter løses på annen måte:
+* 1. eksternId må være noe annet enn brukerbehnaldingsId
+* 2. Hvilke vedlegg som finnes og skal sendes inn må hentes på annen måte
+*
+* */
+internal class LegacySoknadMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: Mediator
 ) : River.PacketListener {

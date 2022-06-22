@@ -11,7 +11,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 
-internal class SoknadMottakTest {
+internal class LegacySoknadMottakTest {
     private val testRapid = TestRapid()
 
     @Test
@@ -19,7 +19,7 @@ internal class SoknadMottakTest {
         val hendelseSlot = slot<SoknadMottattHendelse>()
         val mockMediator = mockk<Mediator>(relaxed = true)
         val forventetDato = ZonedDateTime.now(ZoneId.of("Europe/Oslo"))
-        SoknadMottak(testRapid, mockMediator)
+        LegacySoknadMottak(testRapid, mockMediator)
         testRapid.sendTestMessage(søknadJson(forventetDato.toLocalDateTime()))
         verify(exactly = 1) {
             mockMediator.handle(
@@ -38,7 +38,7 @@ internal class SoknadMottakTest {
     fun `håndterer ikke papirsøknader`() {
         val hendelseSlot = slot<SoknadMottattHendelse>()
         val mockMediator = mockk<Mediator>(relaxed = true)
-        SoknadMottak(testRapid, mockMediator)
+        LegacySoknadMottak(testRapid, mockMediator)
         testRapid.sendTestMessage(papirsøknadJson)
         verify(exactly = 0) {
             mockMediator.handle(capture(hendelseSlot))

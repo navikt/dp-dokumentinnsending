@@ -15,7 +15,7 @@ internal object App : RapidsConnection.StatusListener {
 
     init {
         rapidsConnection.register(this)
-        SoknadMottak(
+        LegacySoknadMottak(
             rapidsConnection = rapidsConnection,
             mediator = mediator
         )

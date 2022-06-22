@@ -68,6 +68,10 @@ internal class VedleggApiTest {
         }
     }
 
+    @Test
+    fun `skal kunne hente liste av vedlegg for søknad basert på brukerbehandlingsId mao eksternId`() {
+    }
+
     private fun expectedSoknadResponsJson(registrertDato: ZonedDateTime): String {
         //language=Json
         return """[

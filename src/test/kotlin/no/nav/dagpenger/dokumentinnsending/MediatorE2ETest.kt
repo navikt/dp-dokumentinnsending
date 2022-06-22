@@ -20,7 +20,7 @@ internal class MediatorE2ETest {
         PostgresTestHelper.withMigratedDb {
             val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
             val mediator = Mediator(soknadRepository = soknadRepository)
-            SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
+            LegacySoknadMottak(rapidsConnection = testRapid, mediator = mediator)
 
             testRapid.sendTestMessage(søknadJson(brukerBehandlingsId = "1", innsendingsValg = "LastetOpp"))
             val soknad = soknadRepository.hent("1")
@@ -34,7 +34,7 @@ internal class MediatorE2ETest {
         PostgresTestHelper.withMigratedDb {
             val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
             val mediator = Mediator(soknadRepository = soknadRepository)
-            SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
+            LegacySoknadMottak(rapidsConnection = testRapid, mediator = mediator)
             EttersendingMottak(rapidsConnection = testRapid, mediator = mediator)
             assertDoesNotThrow {
                 testRapid.sendTestMessage(
@@ -56,7 +56,7 @@ internal class MediatorE2ETest {
             val soknadRepository = PostgresSoknadRepository(PostgresTestHelper.dataSource)
             val mediator = Mediator(soknadRepository = soknadRepository)
 
-            SoknadMottak(rapidsConnection = testRapid, mediator = mediator)
+            LegacySoknadMottak(rapidsConnection = testRapid, mediator = mediator)
             EttersendingMottak(rapidsConnection = testRapid, mediator = mediator)
 
             testRapid.sendTestMessage(søknadJson(brukerBehandlingsId = eksternId, innsendingsValg = "SendesSenere"))
