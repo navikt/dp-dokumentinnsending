@@ -1,5 +1,7 @@
 package no.nav.dagpenger.dokumentinnsending.api
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
@@ -14,13 +16,17 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.dagpenger.dokumentinnsending.Configuration
+import no.nav.dagpenger.dokumentinnsending.auth.fnr
 import no.nav.dagpenger.dokumentinnsending.auth.jwt
 import no.nav.dagpenger.dokumentinnsending.db.SoknadRepository
 
 internal fun Application.vedleggApi(soknadRepository: SoknadRepository) {
 
     install(ContentNegotiation) {
-        jackson()
+        jackson {
+            registerModule(JavaTimeModule())
+            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        }
     }
     install(Authentication) {
         jwt(Configuration.AzureAd.name, Configuration.AzureAd.wellKnownUrl) {
@@ -46,9 +52,9 @@ internal fun Application.vedleggApi(soknadRepository: SoknadRepository) {
 
                 route("/soknader") {
                     get {
-                        val principal = this.call.authentication.principal
-                        // soknadRepository.hent()
-                        call.respond(HttpStatusCode.OK, principal ?: "hubba")
+                        soknadRepository.hentSoknaderForPerson(this.call.authentication.fnr()).let {
+                            call.respond(HttpStatusCode.OK, it.map(SoknadResponse.Companion::from))
+                        }
                     }
                 }
             }

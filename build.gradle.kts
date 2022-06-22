@@ -52,9 +52,6 @@ dependencies {
     implementation(Ktor2.Server.library("status-pages"))
     implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
     implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.06.20-08.17.4f9161a85b76")
-    // implementation(Ktor2.Server.library("call-id"))
-    // implementation(Ktor2.Server.library("call-logging"))
-    // implementation(Ktor2.Server.library("compression"))
     implementation(Ktor2.Client.library("cio"))
     implementation(Ktor2.Client.library("content-negotiation"))
     implementation(Database.Flyway)
@@ -66,7 +63,8 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:0.5.1")
     testImplementation(kotlin("test"))
     testImplementation(Ktor2.Server.library("test-host"))
-    // testImplementation(Ktor2.Client.library("mock"))
+    testImplementation("org.skyscreamer:jsonassert:1.5.0")
+
     testImplementation(Mockk.mockk)
 }
 

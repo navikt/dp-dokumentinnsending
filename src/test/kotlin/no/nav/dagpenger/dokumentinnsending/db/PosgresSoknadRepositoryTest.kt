@@ -27,7 +27,10 @@ internal class PosgresSoknadRepositoryTest {
             val repo = PostgresSoknadRepository(ds)
 
             lagSoknader("1", SoknadMedVedlegg(1, 0)).forEach { repo.lagre(it) }
-            assertEquals(1, repo.hentSoknaderForPerson("1").size)
+            repo.hentSoknaderForPerson("1").let {
+                assertEquals(1, it.size)
+                assertEquals(0, it.first().vedleggData.size)
+            }
 
             lagSoknader("2", SoknadMedVedlegg(2, 5)).forEach { repo.lagre(it) }
             repo.hentSoknaderForPerson("2").let {
