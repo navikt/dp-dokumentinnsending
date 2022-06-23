@@ -11,12 +11,13 @@ import java.util.UUID
 
 class Innsending(
     private val innsendingId: UUID = UUID.randomUUID(),
+    private val fodselsnummer: String,
     private var tilstand: InnsendingsTilstand = Paabegynt,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst {
 
     fun accept(visitor: InnsendingVisitor) {
-        visitor.visit(innsendingId)
+        visitor.visit(innsendingId, fodselsnummer)
     }
 
     fun handle(innsendingStartet: InnsendingStartetHendelse) {
@@ -69,7 +70,13 @@ class Innsending(
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
-        TODO("Not yet implemented")
+        return SpesifikkKontekst(
+            kontekstType = "Innsending",
+            kontekstMap = mapOf(
+                "fodselnummer" to fodselsnummer,
+                "innsendingId" to innsendingId.toString()
+            )
+        )
     }
 }
 

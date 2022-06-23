@@ -1,5 +1,6 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
+import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg.Aktivitet.Behov
 import no.nav.dagpenger.dokumentinnsending.modell.innsending.Innsending
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -56,6 +57,8 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
 
     override fun aktivitetsteller() = aktiviteter.size
 
+    override fun behov() = Behov.filter(aktiviteter)
+
     override fun kontekst(kontekst: Aktivitetskontekst) {
         kontekster.add(kontekst)
     }
@@ -74,6 +77,10 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
         return Aktivitetslogg(this).also {
             it.aktiviteter.addAll(this.aktiviteter.filter { aktivitet -> kontekst in aktivitet })
         }
+    }
+
+    override fun behov(type: Behov.Behovtype, melding: String, detaljer: Map<String, Any>) {
+        add(Behov(type, kontekster.toSpesifikk(), melding, detaljer))
     }
 
     override fun kontekster() =
@@ -190,6 +197,30 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
                 visitor.visitSevere(kontekster, this, melding, tidsstempel)
             }
         }
+
+        class Behov(
+            val type: Behovtype,
+            kontekster: List<SpesifikkKontekst>,
+            private val melding: String,
+            private val detaljer: Map<String, Any> = emptyMap(),
+            private val tidsstempel: String = LocalDateTime.now().format(tidsstempelformat)
+        ) : Aktivitet(50, 'N', melding, tidsstempel, kontekster) {
+            companion object {
+                internal fun filter(aktiviteter: List<Aktivitet>): List<Behov> {
+                    return aktiviteter.filterIsInstance<Behov>()
+                }
+            }
+
+            fun detaljer() = detaljer
+
+            override fun accept(visitor: AktivitetsloggVisitor) {
+                visitor.visitBehov(kontekster, this, type, melding, detaljer, tidsstempel)
+            }
+
+            enum class Behovtype {
+                NyJournalpost
+            }
+        }
     }
 }
 
@@ -198,7 +229,7 @@ interface IAktivitetslogg {
     fun warn(melding: String, vararg params: Any?)
     fun error(melding: String, vararg params: Any?)
     fun severe(melding: String, vararg params: Any?): Nothing
-
+    fun behov(): List<Behov>
     fun hasMessages(): Boolean
     fun hasWarnings(): Boolean
     fun hasErrors(): Boolean
@@ -208,6 +239,7 @@ interface IAktivitetslogg {
     fun kontekst(soknad: Soknad)
     fun kontekst(innsending: Innsending)
     fun kontekster(): List<IAktivitetslogg>
+    fun behov(type: Behov.Behovtype, melding: String, detaljer: Map<String, Any> = emptyMap())
 }
 
 interface AktivitetsloggVisitor {
@@ -240,6 +272,16 @@ interface AktivitetsloggVisitor {
         kontekster: List<SpesifikkKontekst>,
         aktivitet: Aktivitetslogg.Aktivitet.Severe,
         melding: String,
+        tidsstempel: String
+    ) {
+    }
+
+    fun visitBehov(
+        kontekster: List<SpesifikkKontekst>,
+        aktivitet: Behov,
+        type: Behov.Behovtype,
+        melding: String,
+        detaljer: Map<String, Any>,
         tidsstempel: String
     ) {
     }

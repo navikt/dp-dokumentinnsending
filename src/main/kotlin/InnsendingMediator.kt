@@ -34,7 +34,9 @@ class InnsendingMediator(
     }
 
     private fun innsending(hendelse: InnsendingHendelse): Innsending {
-        return repository.hent(hendelse.innsendingId())?.toInnsending() ?: Innsending().also {
+        return repository.hent(hendelse.innsendingId())?.toInnsending() ?: Innsending(
+            fodselsnummer = hendelse.fodselsnummer()
+        ).also {
             repository.lagre(it.toInnsendingData())
         }
     }
@@ -50,22 +52,31 @@ class InnsendingMediator(
 internal object SerDer {
     // todo put me somewhere nice
     fun InnsendingData.toInnsending(): Innsending {
-        return Innsending(innsendingId = UUID.fromString(this.innsendingId))
+        return Innsending(
+            innsendingId = UUID.fromString(this.innsendingId),
+            fodselsnummer = this.fodselsnummer,
+        )
     }
 
     fun Innsending.toInnsendingData(): InnsendingData {
-        return InnsendingData(innsendingId = Visitor(this).innsendingId.toString())
+        val visitor = Visitor(this)
+        return InnsendingData(
+            innsendingId = visitor.innsendingId.toString(),
+            fodselsnummer = visitor.fodselsnummer,
+        )
     }
 
     private class Visitor(innsending: Innsending) : InnsendingVisitor {
         lateinit var innsendingId: UUID
+        lateinit var fodselsnummer: String
 
         init {
             innsending.accept(this)
         }
 
-        override fun visit(innsendingId: UUID) {
+        override fun visit(innsendingId: UUID, fodselsnummer: String) {
             this.innsendingId = innsendingId
+            this.fodselsnummer = fodselsnummer
         }
     }
 }
@@ -74,5 +85,5 @@ interface InnsendingRepository {
     fun hent(innsendingId: UUID): InnsendingData?
     fun lagre(innsending: InnsendingData): InnsendingData?
 
-    data class InnsendingData(val innsendingId: String)
+    data class InnsendingData(val innsendingId: String, val fodselsnummer: String)
 }

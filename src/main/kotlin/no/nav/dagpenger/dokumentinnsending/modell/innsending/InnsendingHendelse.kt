@@ -8,6 +8,7 @@ import java.util.UUID
 
 abstract class InnsendingHendelse(
     private val innsendingId: UUID,
+    private val fodselsnummer: String,
     private val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) :
     IAktivitetslogg by aktivitetslogg,
@@ -17,6 +18,7 @@ abstract class InnsendingHendelse(
     }
 
     fun innsendingId() = innsendingId
+    fun fodselsnummer() = fodselsnummer
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         TODO("Not yet implemented")
@@ -25,4 +27,5 @@ abstract class InnsendingHendelse(
     fun toLogString() = aktivitetslogg.toString()
 }
 
-class InnsendingStartetHendelse(innsendingId: UUID) : InnsendingHendelse(innsendingId)
+class InnsendingStartetHendelse(innsendingId: UUID, fodselsnummer: String) :
+    InnsendingHendelse(innsendingId, fodselsnummer)
