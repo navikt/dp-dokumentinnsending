@@ -2,6 +2,7 @@ import InnsendingRepository.InnsendingData
 import SerDer.toInnsending
 import SerDer.toInnsendingData
 import mu.KotlinLogging
+import no.nav.dagpenger.dokumentinnsending.BehovMediator
 import no.nav.dagpenger.dokumentinnsending.modell.innsending.Innsending
 import no.nav.dagpenger.dokumentinnsending.modell.innsending.InnsendingHendelse
 import no.nav.dagpenger.dokumentinnsending.modell.innsending.InnsendingStartetHendelse
@@ -13,7 +14,8 @@ import java.util.UUID
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 class InnsendingMediator(
-    private val repository: InnsendingRepository
+    private val repository: InnsendingRepository,
+    private val behovMediatoer: BehovMediator
 ) {
     fun handle(innsendingStartetHendelse: InnsendingStartetHendelse) {
         handle(innsendingStartetHendelse) { innsending ->
@@ -46,6 +48,7 @@ class InnsendingMediator(
         if (!hendelse.hasMessages()) return
         if (hendelse.hasErrors()) return sikkerlogg.info("aktivitetslogg inneholder errors: ${hendelse.toLogString()}")
         sikkerlogg.info("aktivitetslogg inneholder meldinger: ${hendelse.toLogString()}")
+        behovMediatoer.håndter(hendelse)
     }
 }
 

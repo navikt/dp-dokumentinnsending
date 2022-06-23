@@ -29,3 +29,21 @@ abstract class InnsendingHendelse(
 
 class InnsendingStartetHendelse(innsendingId: UUID, fodselsnummer: String) :
     InnsendingHendelse(innsendingId, fodselsnummer)
+
+class InnsendingMidlertidigJournalførtHendelse(
+    innsendingId: UUID,
+    fodselsnummer: String,
+    private val journalpostId: String,
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+) : InnsendingHendelse(innsendingId, fodselsnummer) {
+    fun journalPostId() = journalpostId
+}
+
+class InnsendingJournalførtHendelse(
+    innsendingId: UUID,
+    fodselsnummer: String,
+    private val journalpostId: String,
+    aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+) : InnsendingHendelse(innsendingId, fodselsnummer) {
+    fun journalPostId() = journalpostId
+}

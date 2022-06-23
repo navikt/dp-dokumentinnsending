@@ -13,6 +13,7 @@ class Innsending(
     private val innsendingId: UUID = UUID.randomUUID(),
     private val fodselsnummer: String,
     private var tilstand: InnsendingsTilstand = Paabegynt,
+    private var journalpostId: String? = null,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst {
 
@@ -27,34 +28,62 @@ class Innsending(
     interface InnsendingsTilstand : Aktivitetskontekst {
         val type: InnsendingTilstandType
         fun entering(innsendingHendelse: InnsendingHendelse, innsending: Innsending) {}
-        fun handle(innsending: Innsending, innsendingStartetHendelse: InnsendingStartetHendelse) {
-            innsendingStartetHendelse.warn("Forventet ikke SøknadMottatHendelse i ${this.type.name} tilstand")
-        }
+
+        fun handle(innsending: Innsending, innsendingStartet: InnsendingStartetHendelse) =
+            innsendingStartet.`kan ikke håndteres i denne tilstanden`()
+
+        fun handle(
+            innsending: Innsending,
+            innsendingMidlertidigJournalført: InnsendingMidlertidigJournalførtHendelse
+        ) =
+            innsendingMidlertidigJournalført.`kan ikke håndteres i denne tilstanden`()
+
+        fun handle(
+            innsending: Innsending,
+            innsendingJournalført: InnsendingJournalførtHendelse
+        ) =
+            innsendingJournalført.`kan ikke håndteres i denne tilstanden`()
 
         override fun toSpesifikkKontekst(): SpesifikkKontekst {
-            return SpesifikkKontekst(
-                kontekstType = "Tilstand",
-                kontekstMap = mapOf(
-                    "tilstand" to this.type.name
-                )
-            )
+            return this.javaClass.canonicalName.split('.').last().let {
+                SpesifikkKontekst(it, emptyMap())
+            }
         }
+
+        private fun InnsendingHendelse.`kan ikke håndteres i denne tilstanden`() =
+            this.warn("Kan ikke håndtere ${this.javaClass.simpleName} i tilstand $type")
     }
 
     private object Paabegynt : InnsendingsTilstand {
         override val type: InnsendingTilstandType = PÅBEGYNT
+        override fun entering(innsendingHendelse: InnsendingHendelse, innsending: Innsending) {
+            innsending.trengerNyJournalpost(innsendingHendelse)
+        }
 
-        override fun handle(innsending: Innsending, innsendingStartetHendelse: InnsendingStartetHendelse) {
-            innsending.tilstand(innsendingStartetHendelse, AvventerMidlertidligJournalføring)
+        override fun handle(innsending: Innsending, innsendingStartet: InnsendingStartetHendelse) {
+            innsending.tilstand(innsendingStartet, AvventerMidlertidligJournalføring)
         }
     }
 
     private object AvventerMidlertidligJournalføring : InnsendingsTilstand {
         override val type = AVVENTER_MIDLERTIDIG_JOURNALFØRING
+        override fun handle(
+            innsending: Innsending,
+            innsendingMidlertidigJournalført: InnsendingMidlertidigJournalførtHendelse
+        ) {
+            innsending.journalpostId = innsendingMidlertidigJournalført.journalPostId()
+            innsending.tilstand(innsendingMidlertidigJournalført, AvventerJournalføring)
+        }
     }
 
     private object AvventerJournalføring : InnsendingsTilstand {
         override val type = AVVENTER_JOURNALFØRING
+        override fun handle(
+            innsending: Innsending,
+            innsendingJournalført: InnsendingJournalførtHendelse
+        ) {
+            innsending.tilstand(innsendingJournalført, Journalført)
+        }
     }
 
     private object Journalført : InnsendingsTilstand {
@@ -76,6 +105,13 @@ class Innsending(
                 "fodselnummer" to fodselsnummer,
                 "innsendingId" to innsendingId.toString()
             )
+        )
+    }
+
+    private fun trengerNyJournalpost(innsendingHendelse: InnsendingHendelse) {
+        innsendingHendelse.behov(
+            type = Aktivitetslogg.Aktivitet.Behov.Behovtype.NyJournalpost,
+            melding = "Trenger å journalføre innsending",
         )
     }
 }
