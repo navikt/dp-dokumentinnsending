@@ -1,5 +1,6 @@
 package no.nav.dagpenger.dokumentinnsending.modell
 
+import no.nav.dagpenger.dokumentinnsending.modell.innsending.Innsending
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -62,6 +63,11 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
     override fun kontekst(soknad: Soknad) {
         forelder = soknad.aktivitetslogg
         kontekst(soknad as Aktivitetskontekst)
+    }
+
+    override fun kontekst(innsending: Innsending) {
+        forelder = innsending.aktivitetslogg
+        kontekst(innsending as Aktivitetskontekst)
     }
 
     internal fun logg(kontekst: Aktivitetskontekst): Aktivitetslogg {
@@ -187,8 +193,6 @@ class Aktivitetslogg(private var forelder: Aktivitetslogg? = null) : IAktivitets
     }
 }
 
-// fun Aktivitetslogg.toMap() = AktivitetsloggReflect(this).toMap()
-
 interface IAktivitetslogg {
     fun info(melding: String, vararg params: Any?)
     fun warn(melding: String, vararg params: Any?)
@@ -202,6 +206,7 @@ interface IAktivitetslogg {
     fun barn(): Aktivitetslogg
     fun kontekst(kontekst: Aktivitetskontekst)
     fun kontekst(soknad: Soknad)
+    fun kontekst(innsending: Innsending)
     fun kontekster(): List<IAktivitetslogg>
 }
 
