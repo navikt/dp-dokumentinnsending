@@ -4,17 +4,25 @@ import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetskontekst
 import no.nav.dagpenger.dokumentinnsending.modell.Aktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.IAktivitetslogg
 import no.nav.dagpenger.dokumentinnsending.modell.SpesifikkKontekst
+import java.util.UUID
 
-abstract class InnsendingHendelse(private val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()) :
+abstract class InnsendingHendelse(
+    private val innsendingId: UUID,
+    private val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
+) :
     IAktivitetslogg by aktivitetslogg,
     Aktivitetskontekst {
     init {
         aktivitetslogg.kontekst(this)
     }
 
+    fun innsendingId() = innsendingId
+
     override fun toSpesifikkKontekst(): SpesifikkKontekst {
         TODO("Not yet implemented")
     }
+
+    fun toLogString() = aktivitetslogg.toString()
 }
 
-class InnsendingStartetHendelse : InnsendingHendelse()
+class InnsendingStartetHendelse(innsendingId: UUID) : InnsendingHendelse(innsendingId)

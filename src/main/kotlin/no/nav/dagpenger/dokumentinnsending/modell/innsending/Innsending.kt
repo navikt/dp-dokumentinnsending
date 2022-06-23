@@ -7,11 +7,17 @@ import no.nav.dagpenger.dokumentinnsending.modell.innsending.InnsendingTilstandT
 import no.nav.dagpenger.dokumentinnsending.modell.innsending.InnsendingTilstandType.AVVENTER_MIDLERTIDIG_JOURNALFØRING
 import no.nav.dagpenger.dokumentinnsending.modell.innsending.InnsendingTilstandType.JOURNALFØRT
 import no.nav.dagpenger.dokumentinnsending.modell.innsending.InnsendingTilstandType.PÅBEGYNT
+import java.util.UUID
 
 class Innsending(
+    private val innsendingId: UUID = UUID.randomUUID(),
     private var tilstand: InnsendingsTilstand = Paabegynt,
     internal val aktivitetslogg: Aktivitetslogg = Aktivitetslogg()
 ) : Aktivitetskontekst {
+
+    fun accept(visitor: InnsendingVisitor) {
+        visitor.visit(innsendingId)
+    }
 
     fun handle(innsendingStartet: InnsendingStartetHendelse) {
         tilstand.handle(this, innsendingStartet)

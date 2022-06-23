@@ -10,7 +10,7 @@ abstract class Hendelse protected constructor(
     fun eksternSoknadId(): String = eksternSoknadId
 
     init {
-        aktivitetslogg.kontekst(this)
+        aktivitetslogg.kontekst(kontekst = this)
     }
 
     override fun toSpesifikkKontekst(): SpesifikkKontekst {

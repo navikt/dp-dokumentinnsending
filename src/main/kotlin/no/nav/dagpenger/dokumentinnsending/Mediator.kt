@@ -8,7 +8,7 @@ import no.nav.dagpenger.dokumentinnsending.modell.Soknad
 import no.nav.dagpenger.dokumentinnsending.modell.SoknadMottattHendelse
 import org.slf4j.MDC
 
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class Mediator(private val soknadRepository: SoknadRepository) {
 
