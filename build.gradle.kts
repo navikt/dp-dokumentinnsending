@@ -37,7 +37,7 @@ tasks.withType<Jar>().configureEach {
 }
 
 dependencies {
-    implementation(RapidAndRiversKtor2)
+    implementation("com.github.navikt:rapids-and-rivers:coop-SNAPSHOT")
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
