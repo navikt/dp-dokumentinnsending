@@ -27,7 +27,7 @@ spec:
     pool: {{ kafka_pool }}
   gcp:
     sqlInstances:
-      - cascadingDelete: false
+      - cascadingDelete: true
         collation: nb_NO.UTF8
         databases:
           - envVarPrefix: DB
